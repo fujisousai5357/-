@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岐阜県 寺院一覧 | 葬儀社管理ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --stone: #8c7b6e;
+    --moss: #4a6741;
+    --moss-light: #6b9460;
+    --gold: #b8860b;
+    --gold-light: #d4a030;
+    --red: #8b2020;
+    --cream: #faf6ee;
+    --border: #d4c9b5;
+    --shadow: rgba(26,20,16,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(180,160,120,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(74,103,65,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    background: var(--ink);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .header-icon {
+    font-size: 28px;
+    opacity: 0.9;
+  }
+
+  .header-text h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--paper);
+    letter-spacing: 0.08em;
+  }
+
+  .header-text p {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+  }
+
+  .header-count {
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .main-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Sticky controls wrapper */
+  .sticky-controls {
+    position: sticky;
+    top: 63px; /* headerの高さ分（JSで動的調整） */
+    z-index: 90;
+    background: var(--paper);
+    padding-top: 16px;
+    margin-bottom: 0;
+  }
+
+  /* Control bar */
+  .controls {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .stats-bar-sticky {
+    background: var(--paper);
+    padding: 12px 4px 8px;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .control-group label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--stone);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .control-group input,
+  .control-group select {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    padding: 9px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .control-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238c7b6e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  .control-group input:focus,
+  .control-group select:focus {
+    border-color: var(--moss);
+  }
+
+  .btn-reset {
+    padding: 9px 18px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--stone);
+    color: var(--ink);
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .stats-text {
+    font-size: 13px;
+    color: var(--stone);
+  }
+
+  .stats-text strong {
+    color: var(--moss);
+    font-weight: 600;
+  }
+
+  /* Table */
+  .table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead {
+    background: var(--ink);
+  }
+
+  thead th {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--paper);
+    padding: 14px 16px;
+    text-align: left;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  thead th:first-child { border-radius: 0; }
+
+  tbody tr {
+    border-bottom: 1px solid #f0ebe0;
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody tr:hover {
+    background: #faf7f0;
+  }
+
+  tbody td {
+    padding: 13px 16px;
+    font-size: 13.5px;
+    color: var(--ink);
+    vertical-align: middle;
+  }
+
+  .col-name {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .col-sect {
+    font-size: 12.5px;
+    color: var(--stone);
+  }
+
+  .sect-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .sect-jodoshinshu-honganji { background: #e8f0ff; color: #2244aa; }
+  .sect-jodoshinshu-otani { background: #fff0e8; color: #aa4422; }
+  .sect-jodo { background: #e8fff0; color: #226633; }
+  .sect-rinzai { background: #f0e8ff; color: #553399; }
+  .sect-shingon { background: #fff8e0; color: #886600; }
+  .sect-other { background: #f0f0f0; color: #555; }
+
+  .col-addr {
+    font-size: 12.5px;
+    color: #555;
+    max-width: 200px;
+  }
+
+  .col-tel { 
+    font-size: 12.5px;
+    color: var(--stone);
+    white-space: nowrap;
+  }
+
+  /* 葬儀対応 toggle */
+  .funeral-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #ddd;
+    border-radius: 20px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    background: var(--moss);
+  }
+
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(16px);
+  }
+
+  .toggle-label {
+    font-size: 12px;
+    color: var(--stone);
+  }
+
+  .toggle-label.active {
+    color: var(--moss);
+    font-weight: 500;
+  }
+
+  /* Tag */
+  .tag-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--moss);
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .tag-partner {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  .tag-remove {
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .tag-remove:hover { opacity: 1; }
+
+  .btn-tag {
+    padding: 3px 8px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--stone);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .btn-tag:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Memo */
+  .memo-input {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    padding: 5px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    width: 100%;
+    min-width: 120px;
+    min-height: 24px;
+    background: transparent;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    resize: none;
+  }
+
+  .memo-input:hover {
+    border-color: var(--border);
+    background: #fafafa;
+  }
+
+  .memo-input:focus {
+    border-color: var(--moss);
+    background: white;
+  }
+
+  .memo-input::placeholder {
+    color: #ccc;
+  }
+
+  /* No results */
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--stone);
+    font-size: 14px;
+  }
+
+  .no-results .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  /* Save notice */
+  .save-notice {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--moss);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 200;
+  }
+
+  .save-notice.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Export button */
+  .btn-export {
+    padding: 9px 18px;
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-export:hover {
+    background: var(--gold-light);
+  }
+
+  .btn-import {
+    padding: 9px 18px;
+    background: #e8f0e9;
+    border: 1.5px solid var(--moss);
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--moss);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-import:hover {
+    background: #d4e6d5;
+  }
+
+  .tag-filter-btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: white;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+
+  .tag-filter-btn:hover {
+    border-color: var(--moss);
+    color: var(--moss);
+  }
+
+  .tag-filter-btn.active {
+    background: var(--moss);
+    border-color: var(--moss);
+    color: white;
+    font-weight: 500;
+  }
+
+  .tag-filter-btn[data-tag="提携"].active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+
+  .tag-filter-btn[data-tag="要注意"].active {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+  }
+
+  .btn-add-filter-tag {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    padding: 5px 11px;
+    border: 1.5px dashed var(--moss);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--moss);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .btn-add-filter-tag:hover {
+    background: var(--moss);
+    color: white;
+  }
+
+  .custom-filter-tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    padding: 5px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: white;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .custom-filter-tag-btn:hover { border-color: var(--moss); color: var(--moss); }
+  .custom-filter-tag-btn.active { background: var(--moss); border-color: var(--moss); color: white; font-weight: 500; }
+  .custom-filter-tag-btn .remove-filter-tag { font-size: 11px; opacity: 0.6; margin-left: 2px; }
+  .custom-filter-tag-btn .remove-filter-tag:hover { opacity: 1; }
+
+  /* 手入力モーダル */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 32px;
+    width: 540px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border-top: 4px solid var(--moss);
+  }
+  .modal h2 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .modal-field.full { grid-column: 1 / -1; }
+  .modal-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--stone);
+    letter-spacing: 0.05em;
+  }
+  .modal-field label .required {
+    color: var(--red);
+    margin-left: 3px;
+  }
+  .modal-field input, .modal-field select, .modal-field textarea {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+    border-color: var(--moss);
+  }
+  .modal-field textarea { resize: vertical; min-height: 60px; }
+  .modal-tags-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    min-height: 40px;
+    cursor: text;
+  }
+  .modal-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--moss);
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  .modal-tag-badge.partner { background: var(--gold); color: var(--ink); }
+  .modal-tag-badge span { cursor: pointer; opacity: 0.7; }
+  .modal-tag-badge span:hover { opacity: 1; }
+  .modal-preset-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+  }
+  .modal-preset-btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    padding: 3px 9px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    color: var(--stone);
+    transition: all 0.15s;
+  }
+  .modal-preset-btn:hover { border-color: var(--moss); color: var(--moss); }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-cancel {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    padding: 9px 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-cancel:hover { border-color: var(--stone); }
+  .btn-save {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 24px;
+    border: none;
+    border-radius: 8px;
+    background: var(--moss);
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: #3a5332; }
+  .btn-add-temple {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    background: var(--moss);
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-add-temple:hover { background: #3a5332; }
+
+  @media (max-width: 768px) {
+    .controls { flex-direction: column; }
+    .control-group { min-width: 100%; }
+    thead th:nth-child(4), tbody td:nth-child(4),
+    thead th:nth-child(5), tbody td:nth-child(5) { display: none; }
+
+    /* スマホ：ヘッダーを小さく */
+    header { padding: 10px 16px; }
+    header h1 { font-size: 14px; }
+    header p { font-size: 10px; }
+    .header-icon { font-size: 20px; }
+
+    /* スマホ：メインのパディングを小さく */
+    .main-wrap { padding: 12px; }
+
+    /* スマホ：sticky-controlsの高さを抑える */
+    .sticky-controls { padding-top: 8px; }
+    .controls { padding: 12px; gap: 8px; }
+    .control-group label { font-size: 11px; }
+    .control-group input, .control-group select { font-size: 12px; padding: 6px 8px; }
+
+    /* スマホ：タグ絞り込みエリアを折りたたみ可能に */
+    .tag-filter-area { max-height: 80px; overflow-y: auto; }
+
+    /* スマホ：テーブルのスクロール */
+    .table-wrap { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <span class="header-icon">🏯</span>
+    <div class="header-text">
+      <h1>岐阜県 寺院一覧管理</h1>
+      <p>GIFU PREFECTURE TEMPLE DIRECTORY</p>
+    </div>
+  </div>
+  <span class="header-count" id="headerCount">全 50 件</span>
+</header>
+
+<div class="main-wrap">
+  <div class="sticky-controls">
+  <div class="controls">
+    <div class="control-group">
+      <label>🔍 寺院名で検索</label>
+      <input type="text" id="searchName" placeholder="例：光明寺" oninput="applyFilters()">
+    </div>
+    <div class="control-group">
+      <label>⛩ 宗派で絞り込み</label>
+      <select id="filterSect" onchange="applyFilters()">
+        <option value="">すべての宗派</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>📍 市区町村で絞り込み</label>
+      <select id="filterCity" onchange="applyFilters()">
+        <option value="">すべての地域</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>🕊 葬儀対応</label>
+      <select id="filterFuneral" onchange="applyFilters()">
+        <option value="">すべて</option>
+        <option value="yes">対応あり</option>
+        <option value="no">対応なし</option>
+        <option value="unknown">未確認</option>
+      </select>
+    </div>
+    <div class="control-group" style="min-width:100%;flex-basis:100%;">
+      <label>🏷 タグで絞り込み</label>
+      <div id="tagFilterButtons" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+        <button class="tag-filter-btn active" data-tag="" onclick="setTagFilter(this,'')">すべて</button>
+        <button class="tag-filter-btn" data-tag="提携" onclick="setTagFilter(this,'提携')">提携</button>
+        <button class="tag-filter-btn" data-tag="勤行中 焼香OK" onclick="setTagFilter(this,'勤行中 焼香OK')">勤行中 焼香OK</button>
+        <button class="tag-filter-btn" data-tag="お経長い" onclick="setTagFilter(this,'お経長い')">お経長い</button>
+        <button class="tag-filter-btn" data-tag="話が長い" onclick="setTagFilter(this,'話が長い')">話が長い</button>
+        <button class="tag-filter-btn" data-tag="要注意" onclick="setTagFilter(this,'要注意')">要注意</button>
+        <button class="tag-filter-btn" data-tag="空き寺" onclick="setTagFilter(this,'空き寺')">空き寺</button>
+        <button class="tag-filter-btn" data-tag="兼任寺" onclick="setTagFilter(this,'兼任寺')">兼任寺</button>
+        <div id="customFilterTags"></div>
+        <button class="btn-add-filter-tag" id="btnAddFilterTag" onclick="showFilterTagInput()" title="絞り込みタグを追加">＋ タグ追加</button>
+        <span id="filterTagInputWrap" style="display:none;align-items:center;gap:4px;">
+          <input type="text" id="filterTagInput" placeholder="タグ名を入力…" style="font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:4px 8px;border:1.5px solid var(--moss);border-radius:6px;outline:none;width:120px;">
+          <button onclick="addFilterTag()" style="font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:4px 10px;background:var(--moss);color:white;border:none;border-radius:6px;cursor:pointer;">追加</button>
+          <button onclick="hideFilterTagInput()" style="font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:4px 8px;background:transparent;color:var(--stone);border:1px solid var(--border);border-radius:6px;cursor:pointer;">✕</button>
+        </span>
+      </div>
+      <input type="hidden" id="filterTag" value="">
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">リセット</button>
+    <button class="btn-export" onclick="exportCSV()">📥 CSV出力</button>
+    <button class="btn-import" onclick="document.getElementById('csvImportInput').click()">📤 CSVインポート</button>
+    <input type="file" id="csvImportInput" accept=".csv" style="display:none" onchange="importCSV(this)">
+    <button class="btn-add-temple" onclick="openAddModal()">＋ 寺院を追加</button>
+  </div><!-- /.controls -->
+
+  <div class="stats-bar stats-bar-sticky">
+    <div class="stats-text">検索結果：<strong id="resultCount">50</strong> 件 表示中</div>
+    <div class="stats-text" id="partnerCount" style="color:var(--gold)"></div>
+  </div>
+  </div><!-- /.sticky-controls -->
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:160px">寺院名</th>
+          <th style="width:160px">宗派</th>
+          <th style="width:100px">市区町村</th>
+          <th>住所</th>
+          <th style="width:80px">葬儀対応</th>
+          <th style="width:140px">タグ</th>
+          <th style="width:180px">備考・メモ</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="no-results" id="noResults" style="display:none">
+      <div class="icon">🔍</div>
+      <div>該当する寺院が見つかりませんでした</div>
+    </div>
+  </div>
+</div>
+
+<div class="save-notice" id="saveNotice">✓ 保存しました</div>
+
+<script>
+// ===== 寺院データ =====
+const TEMPLES_RAW = [
+  {name:'唯伝寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市重里1323', zip:'501-0311'},
+  {name:'大日院瑞光寺', sect:'浄土宗西山禅林寺派', city:'瑞穂市', address:'瑞穂市美江寺538', zip:'501-0312'},
+  {name:'光行寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市美江寺951', zip:'501-0312'},
+  {name:'浄蓮院', sect:'浄土宗', city:'瑞穂市', address:'瑞穂市十七条270', zip:'501-0313'},
+  {name:'円慶寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市十七条46', zip:'501-0313'},
+  {name:'蓮光寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市十八条849-1', zip:'501-0314'},
+  {name:'西満寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市横屋270-1', zip:'501-0321'},
+  {name:'徳源寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市横屋309', zip:'501-0321'},
+  {name:'受念寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市古橋945', zip:'501-0322'},
+  {name:'林香寺', sect:'浄土宗', city:'瑞穂市', address:'瑞穂市中宮441', zip:'501-0323'},
+  {name:'即心院', sect:'浄土宗', city:'瑞穂市', address:'瑞穂市呂久1069', zip:'501-0324'},
+  {name:'良縁寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市呂久1110', zip:'501-0324'},
+  {name:'蓮生寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市呂久1100', zip:'501-0324'},
+  {name:'興禅寺', sect:'臨済宗妙心寺派', city:'瑞穂市', address:'瑞穂市十九条868', zip:'501-0235'},
+  {name:'千手院', sect:'高野山真言宗', city:'瑞穂市', address:'瑞穂市本田字八幡西1519-2', zip:'501-0236'},
+  {name:'円融寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市本田1412', zip:'501-0236'},
+  {name:'寳積寺修學院', sect:'真言宗智山派', city:'瑞穂市', address:'瑞穂市本田1523-1', zip:'501-0236'},
+  {name:'正等寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市本田494', zip:'501-0236'},
+  {name:'通玄寺', sect:'臨済宗妙心寺派', city:'瑞穂市', address:'瑞穂市本田1474-1', zip:'501-0236'},
+  {name:'善徳寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市七崎151', zip:'501-0301'},
+  {name:'念徳寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市居倉754', zip:'501-0302'},
+  {name:'徳隣寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市森1094', zip:'501-0303'},
+  {name:'千体寺', sect:'浄土宗', city:'瑞穂市', address:'瑞穂市田之上475-1', zip:'501-0304'},
+  {name:'教泉寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市田之上133-1', zip:'501-0304'},
+  {name:'正蓮寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市宮田767', zip:'501-0305'},
+  {name:'唯敬寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市野白新田125', zip:'501-0231'},
+  {name:'願照寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市大月77-1', zip:'501-0306'},
+  {name:'円竜寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市牛牧78', zip:'501-0234'},
+  {name:'誓祐寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市唐栗542-2', zip:'501-0307'},
+  {name:'広讃寺', sect:'単立(浄土真宗東本願寺派)', city:'瑞穂市', address:'瑞穂市牛牧313', zip:'501-0234'},
+  {name:'相応寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市唐栗317', zip:'501-0307'},
+  {name:'念瑞寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市十九条806', zip:'501-0235'},
+  {name:'浄明寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市重里609', zip:'501-0311'},
+  {name:'善照寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市只越1112-3', zip:'501-0221'},
+  {name:'福応寺', sect:'臨済宗妙心寺派', city:'瑞穂市', address:'瑞穂市只越1283', zip:'501-0221'},
+  {name:'光泉寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市別府467-1', zip:'501-0222'},
+  {name:'善徳寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市別府479-1', zip:'501-0222'},
+  {name:'玉藏院', sect:'真言宗智山派', city:'瑞穂市', address:'瑞穂市別府1933', zip:'501-0222'},
+  {name:'入徳寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市別府514', zip:'501-0222'},
+  {name:'観音院', sect:'浄土宗西山禅林寺派', city:'瑞穂市', address:'瑞穂市穂積278', zip:'501-0223'},
+  {name:'長光寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市穂積164-2', zip:'501-0223'},
+  {name:'宝光寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市穂積86-1', zip:'501-0223'},
+  {name:'仁成寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市穂積1743-1', zip:'501-0223'},
+  {name:'光照寺', sect:'浄土宗', city:'瑞穂市', address:'瑞穂市祖父江1090-1', zip:'501-0225'},
+  {name:'広蓮寺', sect:'真宗大谷派', city:'瑞穂市', address:'瑞穂市祖父江1130', zip:'501-0225'},
+  {name:'超誓寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市馬場395', zip:'501-0201'},
+  {name:'花王院', sect:'高野山真言宗', city:'瑞穂市', address:'瑞穂市生津滝坪町2-49', zip:'501-0212'},
+  {name:'西蓮寺', sect:'浄土真宗本願寺派', city:'瑞穂市', address:'瑞穂市只越1172', zip:'501-0221'},
+  // 本巣市
+  {name:'専念寺', sect:'真宗誠照寺派', city:'本巣市', address:'本巣市根尾東板屋741-1', zip:'501-1516'},
+  {name:'極楽寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市根尾樽見131', zip:'501-1522'},
+  {name:'西光寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市根尾水鳥212', zip:'501-1529'},
+  {name:'福寿寺', sect:'曹洞宗', city:'本巣市', address:'本巣市根尾下大須1140', zip:'501-1512'},
+  {name:'祐国寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市山口412-1', zip:'501-1201'},
+  {name:'楞厳寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市法林寺1-1', zip:'501-1202'},
+  {name:'善永寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市文殊1370', zip:'501-1203'},
+  {name:'照空寺', sect:'曹洞宗', city:'本巣市', address:'本巣市文殊1197', zip:'501-1203'},
+  {name:'増徳寺', sect:'曹洞宗', city:'本巣市', address:'本巣市文殊3181', zip:'501-1203'},
+  {name:'大亀寺', sect:'曹洞宗', city:'本巣市', address:'本巣市文殊1242', zip:'501-1203'},
+  {name:'法住寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市文殊1356', zip:'501-1203'},
+  {name:'正光寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市曽井中島2164', zip:'501-1205'},
+  {name:'正尊寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市曽井中島1592', zip:'501-1205'},
+  {name:'梅英寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市曽井中島663-1', zip:'501-1205'},
+  {name:'円勝寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市金原350', zip:'501-1232'},
+  {name:'願成寺', sect:'日蓮宗', city:'本巣市', address:'本巣市政田815', zip:'501-0471'},
+  {name:'金福寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市金原', zip:'501-1232'},
+  {name:'珀応寺', sect:'真宗大谷派', city:'本巣市', address:'本巣市下福島731', zip:'501-0472'},
+  {name:'瑞光寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市外山', zip:'501-1233'},
+  {name:'西光寺', sect:'真宗大谷派', city:'本巣市', address:'本巣市温井69', zip:'501-0473'},
+  {name:'金輪寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市神海604', zip:'501-1235'},
+  {name:'蓮教寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市浅木120', zip:'501-0475'},
+  {name:'大渓庵', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市佐原', zip:'501-1236'},
+  {name:'地蔵院', sect:'真言宗醍醐派', city:'本巣市', address:'本巣市海老428', zip:'501-0476'},
+  {name:'法英寺', sect:'真言宗智山派', city:'本巣市', address:'本巣市上真桑326', zip:'501-0461'},
+  {name:'専光寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市宗慶24', zip:'501-0462'},
+  {name:'浄蓮寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市小柿222', zip:'501-0463'},
+  {name:'福乗寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市小柿638-1', zip:'501-0463'},
+  {name:'西照寺', sect:'真宗大谷派', city:'本巣市', address:'本巣市十四条925', zip:'501-0464'},
+  {name:'円長寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市軽海640', zip:'501-0465'},
+  {name:'教念寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市下真桑548-1', zip:'501-0466'},
+  {name:'千光寺', sect:'曹洞宗', city:'本巣市', address:'本巣市数屋548', zip:'501-0414'},
+  {name:'光福寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市下真桑1148-1', zip:'501-0466'},
+  {name:'長福寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市有里510', zip:'501-0415'},
+  {name:'余浄寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市政田2327', zip:'501-0471'},
+  {name:'覚勝寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市屋井121', zip:'501-0417'},
+  {name:'光明寺', sect:'真宗大谷派', city:'本巣市', address:'本巣市政田1445', zip:'501-0471'},
+  {name:'最乗寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市七五三112', zip:'501-0418'},
+  {name:'誓海寺', sect:'真宗大谷派', city:'本巣市', address:'本巣市政田455', zip:'501-0471'},
+  {name:'福応寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市七五三1039-1', zip:'501-0418'},
+  {name:'光輪寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市早野61', zip:'501-0419'},
+  {name:'慶円寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市上真桑1046', zip:'501-0461'},
+  {name:'乗泉寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市上真桑287-1', zip:'501-0461'},
+  {name:'薬師寺', sect:'真言宗御室派', city:'本巣市', address:'本巣市上真桑1065', zip:'501-0461'},
+  {name:'常徳寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市長屋1102', zip:'501-0412'},
+  {name:'大安寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市長屋634-1', zip:'501-0412'},
+  {name:'桃林寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市長屋', zip:'501-0412'},
+  {name:'智勝院', sect:'曹洞宗', city:'本巣市', address:'本巣市郡府452', zip:'501-0402'},
+  {name:'正善寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市見延966', zip:'501-0413'},
+  {name:'明安寺', sect:'曹洞宗', city:'本巣市', address:'本巣市北野32', zip:'501-0403'},
+  {name:'松林寺', sect:'曹洞宗', city:'本巣市', address:'本巣市見延383', zip:'501-0413'},
+  {name:'国恩寺', sect:'真言宗醍醐派', city:'本巣市', address:'本巣市春近436-1', zip:'501-0404'},
+  {name:'観音寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市見延519', zip:'501-0413'},
+  {name:'了仙寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市春近488-1', zip:'501-0404'},
+  {name:'願成寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市数屋502', zip:'501-0414'},
+  {name:'延命寺', sect:'高野山真言宗', city:'本巣市', address:'本巣市石原107', zip:'501-0405'},
+  {name:'薬師寺', sect:'曹洞宗', city:'本巣市', address:'本巣市石原149-1', zip:'501-0405'},
+  {name:'眞浄院', sect:'高野山真言宗', city:'本巣市', address:'本巣市三橋131-1', zip:'501-0406'},
+  {name:'勝林寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市三橋368', zip:'501-0406'},
+  {name:'悟春院', sect:'曹洞宗', city:'本巣市', address:'本巣市仏生寺656', zip:'501-0407'},
+  {name:'福性寺', sect:'真言宗智山派', city:'本巣市', address:'本巣市石神309', zip:'501-0410'},
+  {name:'黄梅院', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市石神', zip:'501-0410'},
+  {name:'善通寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市上高屋84-1', zip:'501-0411'},
+  {name:'大福寺', sect:'真言宗智山派', city:'本巣市', address:'本巣市上高屋343-1', zip:'501-0411'},
+  {name:'正伝寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市上保', zip:'501-0401'},
+  {name:'弥勒寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市上保134', zip:'501-0401'},
+  {name:'福応寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市郡府12', zip:'501-0402'},
+  {name:'円命寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市上保354', zip:'501-0401'},
+  {name:'善照寺', sect:'浄土真宗本願寺派', city:'本巣市', address:'本巣市上保397', zip:'501-0401'},
+  {name:'慈雲寺', sect:'臨済宗妙心寺派', city:'本巣市', address:'本巣市上保136', zip:'501-0401'},
+  // 本巣郡北方町
+  {name:'願養寺', sect:'真宗誠照寺派', city:'本巣郡北方町', address:'本巣市根尾越派923', zip:'501-0400'},
+  {name:'蔵洞寺', sect:'臨済宗妙心寺派', city:'本巣郡北方町', address:'本巣市木倉', zip:'501-0400'},
+  {name:'長蔵寺', sect:'臨済宗妙心寺派', city:'本巣郡北方町', address:'本巣市木倉', zip:'501-0400'},
+  {name:'圓鏡寺', sect:'高野山真言宗', city:'本巣郡北方町', address:'本巣郡北方町北方1345-1', zip:'501-0431'},
+  {name:'西運寺', sect:'浄土宗', city:'本巣郡北方町', address:'本巣郡北方町北方1553-1', zip:'501-0431'},
+  {name:'常誓寺', sect:'真宗大谷派', city:'本巣郡北方町', address:'本巣郡北方町北方271', zip:'501-0431'},
+  {name:'吉祥寺', sect:'曹洞宗', city:'本巣郡北方町', address:'本巣郡北方町北方1616', zip:'501-0431'},
+  {name:'妙建寺', sect:'日蓮宗', city:'本巣郡北方町', address:'本巣郡北方町北方1639', zip:'501-0431'},
+  {name:'龍祥寺', sect:'臨済宗妙心寺派', city:'本巣郡北方町', address:'本巣郡北方町春来町1-15', zip:'501-0435'},
+  {name:'西順寺', sect:'浄土真宗本願寺派', city:'本巣郡北方町', address:'本巣郡北方町清水1-21', zip:'501-0437'},
+  {name:'誓増院', sect:'浄土宗西山禅林寺派', city:'本巣郡北方町', address:'本巣郡北方町高屋1144-1', zip:'501-0458'},
+  {name:'西念寺', sect:'浄土真宗本願寺派', city:'本巣郡北方町', address:'本巣郡北方町高屋1143', zip:'501-0458'},
+  // 揖斐郡池田町
+  {name:'毘沙門院', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町池野112-1-1', zip:'503-2424'},
+  {name:'善性寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町片山2412', zip:'503-2428'},
+  {name:'正道寺', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町六之井719', zip:'503-2425'},
+  {name:'涼雲寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町片山2021', zip:'503-2428'},
+  {name:'池野教堂', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町六之井1808-1', zip:'503-2425'},
+  {name:'観音寺', sect:'曹洞宗', city:'揖斐郡池田町', address:'揖斐郡池田町六之井858-1', zip:'503-2425'},
+  {name:'妙勝寺', sect:'曹洞宗', city:'揖斐郡池田町', address:'揖斐郡池田町六之井781', zip:'503-2425'},
+  {name:'全福寺', sect:'天台宗', city:'揖斐郡池田町', address:'揖斐郡池田町六之井715', zip:'503-2425'},
+  {name:'金光寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町六之井1014-2', zip:'503-2425'},
+  {name:'正円寺', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町八幡926', zip:'503-2426'},
+  {name:'宝光寺', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町八幡1380', zip:'503-2426'},
+  {name:'徳通寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町八幡916', zip:'503-2426'},
+  {name:'瑞泉寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町八幡1277', zip:'503-2426'},
+  {name:'浄徳寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町市橋1587', zip:'503-2427'},
+  {name:'浄林院', sect:'浄土宗', city:'揖斐郡池田町', address:'揖斐郡池田町片山1621-1', zip:'503-2428'},
+  {name:'善南寺', sect:'浄土宗', city:'揖斐郡池田町', address:'揖斐郡池田町片山2663-5', zip:'503-2428'},
+  {name:'松寿院', sect:'浄土宗', city:'揖斐郡池田町', address:'揖斐郡池田町池野459', zip:'503-2424'},
+  {name:'正光寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町片山1477', zip:'503-2428'},
+  {name:'東西寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町池野512', zip:'503-2424'},
+  {name:'正林寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町片山2347-1', zip:'503-2428'},
+  {name:'川柳院', sect:'曹洞宗', city:'揖斐郡池田町', address:'揖斐郡池田町宮地886', zip:'503-2406'},
+  {name:'西法寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町般若畑297', zip:'503-2407'},
+  {name:'弓削寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町段740', zip:'503-2408'},
+  {name:'平安寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町舟子402', zip:'503-2409'},
+  {name:'正行寺', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町杉野119', zip:'503-2411'},
+  {name:'浄妙寺', sect:'浄土真宗本願寺派', city:'揖斐郡池田町', address:'揖斐郡池田町白鳥545', zip:'503-2413'},
+  {name:'浄光寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町下東野391', zip:'503-2414'},
+  {name:'長興寺', sect:'曹洞宗', city:'揖斐郡池田町', address:'揖斐郡池田町上田700', zip:'503-2415'},
+  {name:'善福寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町萩原741-1', zip:'503-2416'},
+  {name:'光慶寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町本郷311', zip:'503-2417'},
+  {name:'長福寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町本郷377', zip:'503-2417'},
+  {name:'竜徳寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町本郷1343-1', zip:'503-2417'},
+  {name:'安国寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町小寺', zip:'503-2419'},
+  {name:'神護寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町沓井343', zip:'503-2401'},
+  {name:'立斉寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町山洞500', zip:'503-2421'},
+  {name:'順慶寺', sect:'真宗大谷派', city:'揖斐郡池田町', address:'揖斐郡池田町粕ケ原1980', zip:'503-2402'},
+  {name:'禅蔵寺', sect:'臨済宗妙心寺派', city:'揖斐郡池田町', address:'揖斐郡池田町願成寺380-1', zip:'503-2405'},
+  // 大垣市
+  {name:'明秀寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市昼飯町1102', zip:'503-2216'},
+  {name:'延長寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市青墓町185', zip:'503-2221'},
+  {name:'円願寺', sect:'天台宗', city:'大垣市', address:'大垣市青墓町2-4', zip:'503-2221'},
+  {name:'円興寺', sect:'天台宗', city:'大垣市', address:'大垣市青墓町5-880', zip:'503-2221'},
+  {name:'真楽寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市榎戸町1-399-1', zip:'503-2222'},
+  {name:'西光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市矢道町596', zip:'503-2223'},
+  {name:'國分寺', sect:'高野山真言宗', city:'大垣市', address:'大垣市青野町419', zip:'503-2227'},
+  {name:'永福寺', sect:'浄土宗', city:'大垣市', address:'大垣市青野町648', zip:'503-2227'},
+  {name:'東光寺', sect:'浄土宗', city:'大垣市', address:'大垣市赤坂町3395', zip:'503-2213'},
+  {name:'教覚寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市青野町196', zip:'503-2227'},
+  {name:'正安寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市赤坂町4011', zip:'503-2213'},
+  {name:'智教寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市青野町51', zip:'503-2227'},
+  {name:'正福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市赤坂町2998', zip:'503-2213'},
+  {name:'千手寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市青野町56', zip:'503-2227'},
+  {name:'聖徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市赤坂町4202', zip:'503-2213'},
+  {name:'法泉寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市赤坂町3313', zip:'503-2213'},
+  {name:'金生山・明星輪寺', sect:'単立(真言宗)', city:'大垣市', address:'大垣市赤坂町4610', zip:'503-2213'},
+  {name:'妙法寺', sect:'日蓮宗', city:'大垣市', address:'大垣市赤坂町3381', zip:'503-2213'},
+  {name:'阿弥陀院如来寺', sect:'浄土宗', city:'大垣市', address:'大垣市昼飯町1104', zip:'503-2216'},
+  {name:'西圓寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市草道島町685', zip:'503-2201'},
+  {name:'光円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市池尻町1524', zip:'503-2204'},
+  {name:'徳蔵寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市枝郷5-11', zip:'503-2207'},
+  {name:'弘法寺', sect:'高野山真言宗', city:'大垣市', address:'大垣市赤坂町4530-2', zip:'503-2213'},
+  {name:'唯願寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町下山577-1', zip:'503-1632'},
+  {name:'安楽寺', sect:'浄土宗', city:'大垣市', address:'大垣市赤坂町756', zip:'503-2213'},
+  {name:'地蔵寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町下山3324', zip:'503-1632'},
+  {name:'観音寺', sect:'浄土宗', city:'大垣市', address:'大垣市赤坂町子安4530-7', zip:'503-2213'},
+  {name:'専想寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市上石津町打上542', zip:'503-1633'},
+  {name:'修善寺', sect:'浄土宗', city:'大垣市', address:'大垣市赤坂町3319', zip:'503-2213'},
+  {name:'圓光寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市上石津町打上297', zip:'503-1633'},
+  {name:'天清院', sect:'浄土宗', city:'大垣市', address:'大垣市赤坂町3334', zip:'503-2213'},
+  {name:'了覚寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町打上542', zip:'503-1633'},
+  {name:'本誓寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市上石津町細野485', zip:'503-1634'},
+  {name:'悟空寺', sect:'曹洞宗', city:'大垣市', address:'大垣市上石津町細野362', zip:'503-1634'},
+  {name:'広栄寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町時山153', zip:'503-1635'},
+  {name:'蔵林寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町時山341', zip:'503-1635'},
+  {name:'遍得寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町西山503', zip:'503-1636'},
+  {name:'慈眼院', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町堂之上1161', zip:'503-1637'},
+  {name:'明覚寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町上828', zip:'503-1638'},
+  {name:'法雲寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町牧田2561', zip:'503-1602'},
+  {name:'正林寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町祢宜上11-1', zip:'503-1626'},
+  {name:'明円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町奥373', zip:'503-1611'},
+  {name:'感生寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町前ケ瀬434', zip:'503-1631'},
+  {name:'福正寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町谷畑133', zip:'503-1612'},
+  {name:'龍渕寺', sect:'高野山真言宗', city:'大垣市', address:'大垣市上石津町下山3380', zip:'503-1632'},
+  {name:'伝香寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町上鍛冶屋321', zip:'503-1613'},
+  {name:'正光寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市上石津町下山2662', zip:'503-1632'},
+  {name:'本善寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町一之瀬523', zip:'503-1614'},
+  {name:'天喜寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町一之瀬1316-1', zip:'503-1614'},
+  {name:'念通寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町下多良700', zip:'503-1621'},
+  {name:'浄徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町上原360', zip:'503-1622'},
+  {name:'託念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町上多良597', zip:'503-1623'},
+  {name:'福存寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町上多良646-1', zip:'503-1623'},
+  {name:'瑠璃光寺', sect:'曹洞宗', city:'大垣市', address:'大垣市上石津町上多良937-1', zip:'503-1623'},
+  {name:'極念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町三ツ里859', zip:'503-1624'},
+  {name:'本堂寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町三ツ里221', zip:'503-1624'},
+  {name:'正覺院', sect:'真言宗智山派', city:'大垣市', address:'大垣市上石津町宮羽ヶ原842', zip:'503-1625'},
+  {name:'観音寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町宮字上ノ山365-6', zip:'503-1625'},
+  {name:'多良教会', sect:'高野山真言宗', city:'大垣市', address:'大垣市上石津町祢宜上34', zip:'503-1626'},
+  {name:'光照寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市十六町177-1', zip:'503-0995'},
+  {name:'泉宗寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市島町499', zip:'503-0996'},
+  {name:'林松院', sect:'浄土宗', city:'大垣市', address:'大垣市長松町730', zip:'503-0997'},
+  {name:'慈應寺', sect:'真言宗智山派', city:'大垣市', address:'大垣市長松町820', zip:'503-0997'},
+  {name:'立源寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市長松町768', zip:'503-0997'},
+  {name:'竜松寺', sect:'曹洞宗', city:'大垣市', address:'大垣市長松町753-1', zip:'503-0997'},
+  {name:'敬恩寺', sect:'単立(浄土真宗東本願寺派)', city:'大垣市', address:'大垣市長松町817-1', zip:'503-0997'},
+  {name:'常法寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田4561-1', zip:'503-1602'},
+  {name:'善性寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田2456', zip:'503-1602'},
+  {name:'聞光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田4036', zip:'503-1602'},
+  {name:'法泉寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田3099', zip:'503-1602'},
+  {name:'林正寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田3772', zip:'503-1602'},
+  {name:'西性寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒川町273', zip:'503-0993'},
+  {name:'琳光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上石津町牧田2487', zip:'503-1602'},
+  {name:'蓮正寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒川町252', zip:'503-0993'},
+  {name:'乾崇寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町牧田3441', zip:'503-1602'},
+  {name:'神宮寺', sect:'曹洞宗', city:'大垣市', address:'大垣市綾野町1-2816', zip:'503-0994'},
+  {name:'乾徳寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町牧田2740', zip:'503-1602'},
+  {name:'慶円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市十六町171-1', zip:'503-0995'},
+  {name:'宝聚院', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市上石津町牧田1051', zip:'503-1602'},
+  {name:'西美濃教会', sect:'真宗大谷派', city:'大垣市', address:'大垣市静里町510-1', zip:'503-0983'},
+  {name:'長源寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市静里町1747', zip:'503-0983'},
+  {name:'法永寺', sect:'曹洞宗', city:'大垣市', address:'大垣市静里町437-1', zip:'503-0983'},
+  {name:'法幢寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市静里町642', zip:'503-0983'},
+  {name:'浄徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市綾野1-2767', zip:'503-0984'},
+  {name:'真照寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市綾野1-2759', zip:'503-0984'},
+  {name:'報恩寺', sect:'曹洞宗', city:'大垣市', address:'大垣市綾野1-2720-1', zip:'503-0984'},
+  {name:'聚楽寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市野口1-1930-1', zip:'503-0985'},
+  {name:'薬王寺', sect:'曹洞宗', city:'大垣市', address:'大垣市久瀬川町6-146', zip:'503-0974'},
+  {name:'宝光院', sect:'天台宗', city:'大垣市', address:'大垣市野口1-39-1', zip:'503-0985'},
+  {name:'極楽院空也堂大垣別院', sect:'単立', city:'大垣市', address:'大垣市久瀬川町1-1', zip:'503-0974'},
+  {name:'正専寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市中曽根町435', zip:'503-0986'},
+  {name:'浄宝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市南若森町868-1', zip:'503-0976'},
+  {name:'勝光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒川町254', zip:'503-0993'},
+  {name:'円性寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市檜町947', zip:'503-0981'},
+  {name:'正安寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒川町194', zip:'503-0993'},
+  {name:'久遠寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市檜町686', zip:'503-0981'},
+  {name:'瑞雲寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市檜町689', zip:'503-0981'},
+  {name:'廓然寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市久徳町776-1', zip:'503-0982'},
+  {name:'正円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市静里町467-1', zip:'503-0983'},
+  {name:'恩受寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上笠1-24', zip:'503-0964'},
+  {name:'円休寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市木戸町1160', zip:'503-0973'},
+  {name:'長明寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市割田1-166', zip:'503-0953'},
+  {name:'求浄庵', sect:'浄土宗', city:'大垣市', address:'大垣市久瀬川町5-63', zip:'503-0974'},
+  {name:'正受寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市外花2-51', zip:'503-0954'},
+  {name:'大泉寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市久瀬川町1-40', zip:'503-0974'},
+  {name:'南徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市友江1-572-1', zip:'503-0955'},
+  {name:'徳円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市久瀬川町5-49', zip:'503-0974'},
+  {name:'祐念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市大外羽1-55', zip:'503-0956'},
+  {name:'善得寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市高渕1-104', zip:'503-0958'},
+  {name:'宝池院', sect:'浄土宗', city:'大垣市', address:'大垣市青柳町922', zip:'503-0961'},
+  {name:'徳勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市青柳町1-40', zip:'503-0961'},
+  {name:'徳立寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市青柳町1-62', zip:'503-0961'},
+  {name:'経説寺', sect:'日蓮正宗', city:'大垣市', address:'大垣市青柳町2-165', zip:'503-0961'},
+  {name:'光泉寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市入方2-1571', zip:'503-0962'},
+  {name:'覚竜寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市西大外羽1-141-1', zip:'503-0963'},
+  {name:'永寿寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市多芸島2-417', zip:'503-0965'},
+  {name:'福源寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市南一色町772-1', zip:'503-0971'},
+  {name:'専光寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市木戸町1163-1', zip:'503-0973'},
+  {name:'常楽寺', sect:'浄土宗', city:'大垣市', address:'大垣市船町7-31', zip:'503-0923'},
+  {name:'誓運寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市船町5-30-2', zip:'503-0923'},
+  {name:'青苔寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市船町4-63', zip:'503-0923'},
+  {name:'正覚寺', sect:'曹洞宗', city:'大垣市', address:'大垣市船町7-1', zip:'503-0923'},
+  {name:'全昌寺', sect:'曹洞宗', city:'大垣市', address:'大垣市船町2-21', zip:'503-0923'},
+  {name:'常隆寺', sect:'日蓮宗', city:'大垣市', address:'大垣市船町4-9-1', zip:'503-0923'},
+  {name:'清念寺', sect:'浄土宗', city:'大垣市', address:'大垣市南切石町1-8', zip:'503-0925'},
+  {name:'通念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市本今町205', zip:'503-0932'},
+  {name:'因西寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市外野1-469', zip:'503-0933'},
+  {name:'碧還寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市外渕1-453', zip:'503-0934'},
+  {name:'雲芳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市内原2-8-1', zip:'503-0936'},
+  {name:'珀宝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市釜笛1-193-1-1', zip:'503-0937'},
+  {name:'了信寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市北切石町1-38', zip:'503-0915'},
+  {name:'浄光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市川口3-389-1', zip:'503-0941'},
+  {name:'弘法院', sect:'天宗', city:'大垣市', address:'大垣市神田町2-85', zip:'503-0917'},
+  {name:'安臨寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市横曽根町2-137-1', zip:'503-0943'},
+  {name:'観音寺', sect:'単立', city:'大垣市', address:'大垣市西崎町2-9', zip:'503-0918'},
+  {name:'藤田寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市浅西1-364-1', zip:'503-0945'},
+  {name:'江月寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市馬場町104', zip:'503-0922'},
+  {name:'松林寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市浅中1-70-1', zip:'503-0946'},
+  {name:'大師寺', sect:'単立', city:'大垣市', address:'大垣市藤江町5-38', zip:'503-0893'},
+  {name:'禅桂寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市藤江町2-148', zip:'503-0893'},
+  {name:'順念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市伝馬町19', zip:'503-0897'},
+  {name:'大垣別院開闡寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市伝馬町11', zip:'503-0897'},
+  {name:'実相寺', sect:'日蓮宗', city:'大垣市', address:'大垣市伝馬町32', zip:'503-0897'},
+  {name:'本願寺', sect:'日蓮宗', city:'大垣市', address:'大垣市伝馬町25', zip:'503-0897'},
+  {name:'文殊寺', sect:'高野山真言宗', city:'大垣市', address:'大垣市錦町53', zip:'503-0899'},
+  {name:'興福寺南円堂別院', sect:'法相宗', city:'大垣市', address:'大垣市桐ケ崎町61', zip:'503-0904'},
+  {name:'願宗寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市俵町111', zip:'503-0876'},
+  {name:'浄専寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市宮町2-1', zip:'503-0905'},
+  {name:'善念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市竹島町102', zip:'503-0878'},
+  {name:'本明寺', sect:'単立(浄土真宗東本願寺派)', city:'大垣市', address:'大垣市番組町2-18-3', zip:'503-0907'},
+  {name:'慈王寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市東長町17', zip:'503-0882'},
+  {name:'円通寺', sect:'浄土宗', city:'大垣市', address:'大垣市西外側町1-32-1', zip:'503-0908'},
+  {name:'乗蓮寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市中町68', zip:'503-0884'},
+  {name:'妙永寺', sect:'単立(浄土真宗東本願寺派)', city:'大垣市', address:'大垣市室本町2-43', zip:'503-0911'},
+  {name:'善教寺', sect:'真宗高田派', city:'大垣市', address:'大垣市寺内町1-1', zip:'503-0865'},
+  {name:'妙法寺', sect:'本門佛立宗', city:'大垣市', address:'大垣市寺内町3-43', zip:'503-0865'},
+  {name:'大悲院', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市寺内町北4-14', zip:'503-0865'},
+  {name:'大運寺', sect:'浄土宗', city:'大垣市', address:'大垣市新町1-60', zip:'503-0872'},
+  {name:'浄円寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市新町1-66', zip:'503-0872'},
+  {name:'長光院', sect:'真言宗智山派', city:'大垣市', address:'大垣市新町1-1', zip:'503-0872'},
+  {name:'浄覚寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市新町2-139', zip:'503-0872'},
+  {name:'等覚坊', sect:'真宗大谷派', city:'大垣市', address:'大垣市新町2-45', zip:'503-0872'},
+  {name:'長命寺', sect:'天台宗', city:'大垣市', address:'大垣市新町1-75', zip:'503-0872'},
+  {name:'唯頓寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市深池町947', zip:'503-0846'},
+  {name:'徳秀寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市新町2-47', zip:'503-0872'},
+  {name:'大聖寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市米野町1-140', zip:'503-0847'},
+  {name:'来光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市南高橋町1-31', zip:'503-0873'},
+  {name:'源龍寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市古宮町769', zip:'503-0848'},
+  {name:'大垣第一教会', sect:'大乗教', city:'大垣市', address:'大垣市田町3-25', zip:'503-0875'},
+  {name:'光福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市古宮町1342', zip:'503-0848'},
+  {name:'妙円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市禾森町3-2051', zip:'503-0852'},
+  {name:'本浄寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市築捨町1-89', zip:'503-0854'},
+  {name:'大垣第二教会', sect:'大乗教', city:'大垣市', address:'大垣市南頬町3-89', zip:'503-0864'},
+  {name:'福乗寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市長沢町1-953', zip:'503-0833'},
+  {name:'真浄寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市東前2-434', zip:'503-0835'},
+  {name:'真福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市大井3-575-2', zip:'503-0836'},
+  {name:'縁覚寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市安井町1-44', zip:'503-0837'},
+  {name:'順行寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市平町70', zip:'503-0841'},
+  {name:'養樂寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市平町123', zip:'503-0841'},
+  {name:'回向院', sect:'浄土宗', city:'大垣市', address:'大垣市三塚町193-2-1', zip:'503-0808'},
+  {name:'楽栄寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市馬之瀬町1305', zip:'503-0842'},
+  {name:'真徳寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市三塚町1018', zip:'503-0808'},
+  {name:'速入寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市今福町229', zip:'503-0843'},
+  {name:'寳光寺', sect:'日蓮宗', city:'大垣市', address:'大垣市三塚町1081', zip:'503-0808'},
+  {name:'専徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市難波野町132-1', zip:'503-0844'},
+  {name:'蓮成寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市波須町1-463-1', zip:'503-0811'},
+  {name:'浄真寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市万石1-235-1', zip:'503-0812'},
+  {name:'勝楽寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市三本木町1-465', zip:'503-0813'},
+  {name:'浄源寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市大村1-360', zip:'503-0814'},
+  {name:'本覚寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市直江町491', zip:'503-0815'},
+  {name:'永勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市上面1-804-1', zip:'503-0817'},
+  {name:'善永寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市花園町5-3', zip:'503-0825'},
+  {name:'大師寺', sect:'真言宗醍醐派', city:'大垣市', address:'大垣市東町1-449-1', zip:'503-0802'},
+  {name:'浄勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市東町1-431', zip:'503-0802'},
+  {name:'安養寺', sect:'浄土宗', city:'大垣市', address:'大垣市荒尾町1017', zip:'503-0034'},
+  {name:'専勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市小野1-108', zip:'503-0803'},
+  {name:'善楽寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒尾町1145', zip:'503-0034'},
+  {name:'蓮華寺', sect:'単立(浄土真宗東本願寺派)', city:'大垣市', address:'大垣市鶴見町64-5', zip:'503-0805'},
+  {name:'長円寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市荒尾町1183', zip:'503-0034'},
+  {name:'新善光寺', sect:'天台宗', city:'大垣市', address:'大垣市緑園31', zip:'503-0806'},
+  {name:'法性寺', sect:'曹洞宗', city:'大垣市', address:'大垣市荒尾町1072', zip:'503-0034'},
+  {name:'福勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市今宿町2-192-1', zip:'503-0807'},
+  {name:'圓成寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市荒尾町1284', zip:'503-0034'},
+  {name:'明台寺', sect:'浄土宗西山禅林寺派', city:'大垣市', address:'大垣市墨俣町墨俣226', zip:'503-0102'},
+  {name:'光受寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町墨俣211', zip:'503-0102'},
+  {name:'広専寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町墨俣134', zip:'503-0102'},
+  {name:'等覚寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町墨俣132', zip:'503-0102'},
+  {name:'本正寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町墨俣210', zip:'503-0102'},
+  {name:'満福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町墨俣131', zip:'503-0102'},
+  {name:'西来寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町上宿345', zip:'503-0103'},
+  {name:'蓮泉寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市墨俣町下宿210', zip:'503-0104'},
+  {name:'理専寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市和合新町1-1230', zip:'503-0801'},
+  {name:'大垣第三教会', sect:'大乗教', city:'大垣市', address:'大垣市林町4-65', zip:'503-0015'},
+  {name:'真光寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市福田町383', zip:'503-0033'},
+  {name:'長勝寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市林町3-53', zip:'503-0015'},
+  {name:'大勝寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市福田町298', zip:'503-0033'},
+  {name:'松濤寺', sect:'浄土宗', city:'大垣市', address:'大垣市中川町4-187', zip:'503-0017'},
+  {name:'総福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市中川町2-1078', zip:'503-0017'},
+  {name:'西竜寺', sect:'浄土宗', city:'大垣市', address:'大垣市西之川町2089', zip:'503-0018'},
+  {name:'康安寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市西之川町1-2098', zip:'503-0018'},
+  {name:'西重寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市北方町1-1568', zip:'503-0019'},
+  {name:'清広寺', sect:'単立(浄土真宗東本願寺派)', city:'大垣市', address:'大垣市北方町1593', zip:'503-0019'},
+  {name:'慈渓寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市北方町1592', zip:'503-0019'},
+  {name:'浄福寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市河間町2-387', zip:'503-0021'},
+  {name:'河間教会', sect:'妙見宗', city:'大垣市', address:'大垣市河間町512-3', zip:'503-0021'},
+  {name:'念勝寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市中野町5-455', zip:'503-0022'},
+  {name:'徳養寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市笠木町360', zip:'503-0023'},
+  {name:'星晨寺', sect:'浄土宗', city:'大垣市', address:'大垣市見取町12', zip:'503-0025'},
+  {name:'長徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市三津屋町41', zip:'503-0012'},
+  {name:'超誓寺', sect:'真宗興正派', city:'大垣市', address:'大垣市見取町1-116', zip:'503-0025'},
+  {name:'顕性寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市林町4-34', zip:'503-0015'},
+  {name:'受圓寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市笠縫町552', zip:'503-0027'},
+  {name:'善教寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市開発町3-495', zip:'503-0002'},
+  {name:'発願寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市開発町2-988', zip:'503-0002'},
+  {name:'了誓寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市津村町3-555', zip:'503-0003'},
+  {name:'西方寺', sect:'浄土宗西山禅林寺派', city:'大垣市', address:'大垣市和合本町1-105-3', zip:'503-0005'},
+  {name:'西生寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市和合本町2-610-1', zip:'503-0005'},
+  {name:'正賢寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市加賀野1-622-2', zip:'503-0006'},
+  {name:'通誓寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市貝曽根町510', zip:'503-0007'},
+  {name:'智光庵', sect:'浄土宗', city:'大垣市', address:'大垣市楽田町2-1694', zip:'503-0008'},
+  {name:'薬師院', sect:'浄土宗', city:'大垣市', address:'大垣市楽田町1-1820', zip:'503-0008'},
+  {name:'林雙寺', sect:'浄土真宗本願寺派', city:'大垣市', address:'大垣市楽田町2-1664', zip:'503-0008'},
+  {name:'宗休寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市楽田町1817', zip:'503-0008'},
+  {name:'円徳寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市曽根町1-615', zip:'503-0011'},
+  {name:'満念寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市曽根町611', zip:'503-0011'},
+  {name:'延命寺', sect:'浄土宗西山禅林寺派', city:'大垣市', address:'大垣市墨俣町堤町', zip:'503-0000'},
+  {name:'華溪寺', sect:'臨済宗妙心寺派', city:'大垣市', address:'大垣市曽根町1-772-1', zip:'503-0011'},
+  {name:'上屋教会', sect:'真宗大谷派', city:'大垣市', address:'大垣市屋上1-17', zip:'503-0000'},
+  {name:'光正寺', sect:'真宗大谷派', city:'大垣市', address:'大垣市大島町2-801', zip:'503-0001'},
+  // 揖斐郡大野町
+  {name:'龍岡院', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町領家429-1', zip:'501-0556'},
+  {name:'長念寺', sect:'真宗大谷派', city:'揖斐郡大野町', address:'揖斐郡大野町牛洞26', zip:'501-0561'},
+  {name:'常光寺', sect:'日蓮宗', city:'揖斐郡大野町', address:'揖斐郡大野町松山字志名129-1', zip:'501-0562'},
+  {name:'陽勝寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町瀬古字辻142', zip:'501-0563'},
+  {name:'本伝寺', sect:'日蓮宗', city:'揖斐郡大野町', address:'揖斐郡大野町瀬古字辻144', zip:'501-0563'},
+  {name:'向源寺', sect:'真宗大谷派', city:'揖斐郡大野町', address:'揖斐郡大野町下座倉112', zip:'501-0534'},
+  {name:'徳林寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町中之元852', zip:'501-0565'},
+  {name:'寿清院', sect:'曹洞宗', city:'揖斐郡大野町', address:'揖斐郡大野町加納107', zip:'501-0535'},
+  {name:'願成寺', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町中之元755', zip:'501-0565'},
+  {name:'竜興寺', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町小衣斐', zip:'501-0551'},
+  {name:'西光寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町大衣斐178', zip:'501-0552'},
+  {name:'大蔵寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町南方463', zip:'501-0553'},
+  {name:'妙円寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町五之里830', zip:'501-0554'},
+  {name:'光照寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町公郷760-1', zip:'501-0555'},
+  {name:'西光寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町公郷2479', zip:'501-0555'},
+  {name:'仏照寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町公郷313', zip:'501-0555'},
+  {name:'月真寺', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町公郷', zip:'501-0555'},
+  {name:'実相院', sect:'高野山真言宗', city:'揖斐郡大野町', address:'揖斐郡大野町領家464', zip:'501-0556'},
+  {name:'浄勝寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町下方329-1', zip:'501-0523'},
+  {name:'心楽寺', sect:'浄土宗', city:'揖斐郡大野町', address:'揖斐郡大野町稲富2597-2', zip:'501-0501'},
+  {name:'法真寺', sect:'天台宗', city:'揖斐郡大野町', address:'揖斐郡大野町六里149-1', zip:'501-0525'},
+  {name:'長宝寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町稲富592', zip:'501-0501'},
+  {name:'慈照寺', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町下磯11', zip:'501-0532'},
+  {name:'来振寺', sect:'真言宗智山派', city:'揖斐郡大野町', address:'揖斐郡大野町稲富397-1', zip:'501-0501'},
+  {name:'超安寺', sect:'真宗大谷派', city:'揖斐郡大野町', address:'揖斐郡大野町本庄213', zip:'501-0533'},
+  {name:'地蔵寺', sect:'臨済宗妙心寺派', city:'揖斐郡大野町', address:'揖斐郡大野町古川192-1', zip:'501-0502'},
+  {name:'智量院', sect:'曹洞宗', city:'揖斐郡大野町', address:'揖斐郡大野町本庄873', zip:'501-0533'},
+  {name:'光沢寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町寺内289-1', zip:'501-0503'},
+  {name:'善能寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町寺内243-2', zip:'501-0503'},
+  {name:'順明寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町野1255-1', zip:'501-0504'},
+  {name:'西照寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町野1278', zip:'501-0504'},
+  {name:'不動院', sect:'曹洞宗', city:'揖斐郡大野町', address:'揖斐郡大野町野1181-1', zip:'501-0504'},
+  {name:'専檀寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町上秋120', zip:'501-0512'},
+  {name:'光明寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町大野361', zip:'501-0513'},
+  {name:'清林寺', sect:'浄土宗', city:'揖斐郡大野町', address:'揖斐郡大野町西方479-5', zip:'501-0514'},
+  {name:'光専寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町黒野683', zip:'501-0521'},
+  {name:'香焼寺', sect:'浄土真宗本願寺派', city:'揖斐郡大野町', address:'揖斐郡大野町黒野1660', zip:'501-0521'},
+  {name:'実相寺', sect:'浄土宗', city:'揖斐郡大野町', address:'揖斐郡大野町下方384', zip:'501-0523'},
+  // 揖斐郡揖斐川町
+  {name:'観音寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日中山2725', zip:'503-2504'},
+  {name:'光永寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日小宮神940', zip:'503-2505'},
+  {name:'明随寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日香六701', zip:'503-2506'},
+  {name:'法輪院', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲徳積23', zip:'501-1311'},
+  {name:'遍光寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日六合966', zip:'503-2502'},
+  {name:'明王院', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲徳積23', zip:'501-1311'},
+  {name:'光明寺', sect:'浄土宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日川合1452', zip:'503-2503'},
+  {name:'善長寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲大洞800', zip:'501-1312'},
+  {name:'円立寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲深坂694', zip:'501-1313'},
+  {name:'本覚寺', sect:'日蓮宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲深坂782', zip:'501-1313'},
+  {name:'顕宗寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲名礼1549-1', zip:'501-1314'},
+  {name:'中林寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲名礼1213', zip:'501-1314'},
+  {name:'西宝寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲木曽屋697', zip:'501-1316'},
+  {name:'専教寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲神原381', zip:'501-1317'},
+  {name:'横蔵寺', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲神原1160', zip:'501-1317'},
+  {name:'閑窓寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日美束829', zip:'503-2501'},
+  {name:'西蔵寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日美束3609', zip:'503-2501'},
+  {name:'長光寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日美束2486', zip:'503-2501'},
+  {name:'発心寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日美束2935-1', zip:'503-2501'},
+  {name:'一乗院', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲徳積23', zip:'501-1311'},
+  {name:'法性寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日美束4879-2', zip:'503-2501'},
+  {name:'地蔵院', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲徳積23', zip:'501-1311'},
+  {name:'寂靜寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町春日六合1902', zip:'503-2502'},
+  {name:'善竜寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町西横山880', zip:'501-0805'},
+  {name:'増徳寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町徳山359', zip:'501-0814'},
+  {name:'長昌寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内川上1469', zip:'501-0901'},
+  {name:'妙輪寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内広瀬2692', zip:'501-0902'},
+  {name:'友徳寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内広瀬3039', zip:'501-0902'},
+  {name:'巖泉院', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内広瀬1153', zip:'501-0902'},
+  {name:'称念寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内坂本3040', zip:'501-0903'},
+  {name:'伝明寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内坂本2955', zip:'501-0903'},
+  {name:'本照寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町坂内坂本3275', zip:'501-0903'},
+  {name:'観音堂', sect:'単立', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲岐礼375', zip:'501-1302'},
+  {name:'善重寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町日坂1936', zip:'501-0707'},
+  {name:'法雲寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲岐礼466', zip:'501-1302'},
+  {name:'長国寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町日坂1189', zip:'501-0707'},
+  {name:'善立寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲長瀬1550', zip:'501-1303'},
+  {name:'圓稱寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町樫原421', zip:'501-0708'},
+  {name:'正受寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲長瀬', zip:'501-1303'},
+  {name:'浄輪寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町鶴見588', zip:'501-0802'},
+  {name:'長山寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町谷汲長瀬2640', zip:'501-1303'},
+  {name:'善勝寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町東杉原538', zip:'501-0803'},
+  {name:'勝善寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町東横山460', zip:'501-0804'},
+  {name:'祐性寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町上野1526', zip:'501-0634'},
+  {name:'光蓮寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町白樫242', zip:'501-0635'},
+  {name:'洞泉寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町小津687', zip:'501-0701'},
+  {name:'即現寺', sect:'真宗高田派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町東津汲951', zip:'501-0702'},
+  {name:'等覚寺', sect:'真宗高田派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町東津汲1206', zip:'501-0702'},
+  {name:'専称寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町乙原328', zip:'501-0703'},
+  {name:'等光寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町黒田11', zip:'501-0625'},
+  {name:'福田寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三倉239-1', zip:'501-0704'},
+  {name:'瑞巌寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町瑞岩寺192', zip:'501-0626'},
+  {name:'福円寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町外津汲1655', zip:'501-0705'},
+  {name:'金剛寺', sect:'高野山真言宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町市場1395-2', zip:'501-0627'},
+  {name:'正業寺', sect:'真宗高田派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町西津汲670', zip:'501-0706'},
+  {name:'妙楽寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町市場', zip:'501-0627'},
+  {name:'西向寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町西津汲1126', zip:'501-0706'},
+  {name:'速行寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町市場1056-1', zip:'501-0627'},
+  {name:'長等寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町市場1446', zip:'501-0627'},
+  {name:'心月院', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町上東野319', zip:'501-0632'},
+  {name:'善徳寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町小島字浜金1039', zip:'501-0633'},
+  {name:'光常院', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町小島', zip:'501-0633'},
+  {name:'信楽寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町上野1187-2', zip:'501-0634'},
+  {name:'松林寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪1323-1', zip:'501-0619'},
+  {name:'光明寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町脛永749', zip:'501-0622'},
+  {name:'自性院', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町小谷271', zip:'501-0611'},
+  {name:'法幢寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町脛永1072', zip:'501-0622'},
+  {name:'東光寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町小野135', zip:'501-0612'},
+  {name:'蓮華寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町脛永1057', zip:'501-0622'},
+  {name:'円通寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町志津山522', zip:'501-0613'},
+  {name:'西蓮寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町和田283-1', zip:'501-0623'},
+  {name:'月桂院', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町長良72', zip:'501-0614'},
+  {name:'釈迦院', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町岡58-1', zip:'501-0624'},
+  {name:'現徳寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町清水1434', zip:'501-0615'},
+  {name:'釣月院', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町清水106', zip:'501-0615'},
+  {name:'覚林寺', sect:'日蓮宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町清水1571', zip:'501-0615'},
+  {name:'道慶寺', sect:'日蓮宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町福島字石畑425-2', zip:'501-0616'},
+  {name:'受念寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町島146', zip:'501-0617'},
+  {name:'一心寺', sect:'浄土宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪2924-1-2', zip:'501-0619'},
+  {name:'長源寺', sect:'浄土宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪1428-1', zip:'501-0619'},
+  {name:'西本寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪877', zip:'501-0619'},
+  {name:'真教寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪776', zip:'501-0619'},
+  {name:'大乗寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町三輪843-1', zip:'501-0619'},
+  {name:'善明寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町房島862', zip:'501-0606'},
+  {name:'善明寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町房島844-2', zip:'501-0606'},
+  {name:'長慶寺', sect:'浄土真宗本願寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町北方1642-1', zip:'501-0601'},
+  {name:'不動寺', sect:'曹洞宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町北方1775', zip:'501-0601'},
+  {name:'東光寺', sect:'天台宗', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町若松83', zip:'501-0602'},
+  {name:'長存寺', sect:'真宗大谷派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町上南方822', zip:'501-0603'},
+  {name:'薬師寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町上南方856', zip:'501-0603'},
+  {name:'大興寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町大光寺120', zip:'501-0604'},
+  {name:'弁天寺', sect:'臨済宗妙心寺派', city:'揖斐郡揖斐川町', address:'揖斐郡揖斐川町極楽寺', zip:'501-0605'},
+  // 安八郡輪之内町
+  {name:'浄光寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町福束56', zip:'503-0235'},
+  {name:'福満寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町福束928-1', zip:'503-0235'},
+  {name:'法養寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町塩喰470-1', zip:'503-0236'},
+  {name:'明看寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町塩喰467', zip:'503-0236'},
+  {name:'正福寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町本戸18', zip:'503-0232'},
+  {name:'正光寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町下大榑13041', zip:'503-0205'},
+  {name:'別宗院', sect:'黄檗宗', city:'安八郡輪之内町', address:'安八郡輪之内町中郷34', zip:'503-0233'},
+  {name:'心岩院', sect:'臨済宗妙心寺派', city:'安八郡輪之内町', address:'安八郡輪之内町下大榑13024', zip:'503-0205'},
+  {name:'願正寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町中郷477', zip:'503-0233'},
+  {name:'正養寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町下大榑新田11047', zip:'503-0206'},
+  {name:'益法寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町里738', zip:'503-0234'},
+  {name:'長延寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町下大榑新田9739', zip:'503-0206'},
+  {name:'慶福寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町里917', zip:'503-0234'},
+  {name:'良因寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町下大榑新田12267', zip:'503-0206'},
+  {name:'了恩寺', sect:'浄土真宗本願寺派', city:'安八郡輪之内町', address:'安八郡輪之内町福束新田41', zip:'503-0211'},
+  {name:'乗願寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町福束新田216', zip:'503-0211'},
+  {name:'智福寺', sect:'浄土宗', city:'安八郡輪之内町', address:'安八郡輪之内町中郷新田917', zip:'503-0212'},
+  {name:'長然寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町中郷新田1959', zip:'503-0212'},
+  {name:'専祐寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町藻池新田5039', zip:'503-0213'},
+  {name:'明教寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町海松新田175', zip:'503-0214'},
+  {name:'伝了寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町松内480-1', zip:'503-0215'},
+  {name:'福善寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町松内1036-2', zip:'503-0215'},
+  {name:'長休寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町大吉新田1456', zip:'503-0216'},
+  {name:'専徳寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町南波657', zip:'503-0231'},
+  {name:'本慶寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町四郷1802', zip:'503-0204'},
+  {name:'慶安寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣1556', zip:'503-0201'},
+  {name:'慶正寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣1311-1', zip:'503-0201'},
+  {name:'信成寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣1686', zip:'503-0201'},
+  {name:'西福寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣2706', zip:'503-0201'},
+  {name:'了常寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣1423', zip:'503-0201'},
+  {name:'太岳寺', sect:'臨済宗妙心寺派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣2299', zip:'503-0201'},
+  {name:'円楽寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町大藪1865', zip:'503-0202'},
+  {name:'善明寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町大藪982', zip:'503-0202'},
+  {name:'江翁寺', sect:'臨済宗妙心寺派', city:'安八郡輪之内町', address:'安八郡輪之内町楡俣新田410', zip:'503-0203'},
+  {name:'受法寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町四郷65', zip:'503-0204'},
+  {name:'得浄寺', sect:'真宗大谷派', city:'安八郡輪之内町', address:'安八郡輪之内町四郷2257', zip:'503-0204'},
+  // 安八郡神戸町
+  {name:'浄円寺', sect:'浄土宗', city:'安八郡神戸町', address:'安八郡神戸町中沢396', zip:'503-2326'},
+  {name:'念教寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町南方966', zip:'503-2328'},
+  {name:'正願寺', sect:'浄土真宗本願寺派', city:'安八郡神戸町', address:'安八郡神戸町西保1729', zip:'503-2323'},
+  {name:'生蓮寺', sect:'浄土宗', city:'安八郡神戸町', address:'安八郡神戸町八條678', zip:'503-2324'},
+  {name:'善林寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町八條686', zip:'503-2324'},
+  {name:'瑞雲寺', sect:'臨済宗妙心寺派', city:'安八郡神戸町', address:'安八郡神戸町八條684-1', zip:'503-2324'},
+  {name:'香林院', sect:'浄土宗', city:'安八郡神戸町', address:'安八郡神戸町加納190', zip:'503-2325'},
+  {name:'円受寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町加納201-1', zip:'503-2325'},
+  {name:'法泉寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町落合946', zip:'503-2314'},
+  {name:'誓教寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町斉田45', zip:'503-2316'},
+  {name:'地蔵院', sect:'浄土宗', city:'安八郡神戸町', address:'安八郡神戸町柳瀬1040-1', zip:'503-2317'},
+  {name:'覚養寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町柳瀬27', zip:'503-2317'},
+  {name:'正行寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町柳瀬423', zip:'503-2317'},
+  {name:'専修寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町柳瀬1071', zip:'503-2317'},
+  {name:'神護寺', sect:'天台宗', city:'安八郡神戸町', address:'安八郡神戸町神戸978-1', zip:'503-2305'},
+  {name:'大源寺', sect:'臨済宗妙心寺派', city:'安八郡神戸町', address:'安八郡神戸町瀬古256-1', zip:'503-2318'},
+  {name:'護国寺', sect:'臨済宗妙心寺派', city:'安八郡神戸町', address:'安八郡神戸町神戸491-1', zip:'503-2305'},
+  {name:'性顕寺', sect:'浄土真宗本願寺派', city:'安八郡神戸町', address:'安八郡神戸町末守486-1', zip:'503-2321'},
+  {name:'瑠璃光寺', sect:'臨済宗妙心寺派', city:'安八郡神戸町', address:'安八郡神戸町神戸313-1', zip:'503-2305'},
+  {name:'信願寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町末守518-1', zip:'503-2321'},
+  {name:'正覚寺', sect:'浄土真宗本願寺派', city:'安八郡神戸町', address:'安八郡神戸町北一色', zip:'503-2306'},
+  {name:'浄誓寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町更屋敷709', zip:'503-2322'},
+  {name:'栄春院', sect:'曹洞宗', city:'安八郡神戸町', address:'安八郡神戸町北一色935', zip:'503-2306'},
+  {name:'光源寺', sect:'曹洞宗', city:'安八郡神戸町', address:'安八郡神戸町北一色921', zip:'503-2306'},
+  {name:'長久寺', sect:'浄土真宗本願寺派', city:'安八郡神戸町', address:'安八郡神戸町川西527', zip:'503-2311'},
+  {name:'常源寺', sect:'浄土真宗本願寺派', city:'安八郡神戸町', address:'安八郡神戸町下宮1750', zip:'503-2312'},
+  {name:'密巌寺', sect:'天台宗', city:'安八郡神戸町', address:'安八郡神戸町下宮1844-1', zip:'503-2312'},
+  {name:'慶円寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町落合945', zip:'503-2314'},
+  {name:'永徳寺', sect:'真宗高田派', city:'安八郡神戸町', address:'安八郡神戸町横井138', zip:'503-2301'},
+  {name:'薬師寺', sect:'曹洞宗', city:'安八郡神戸町', address:'安八郡神戸町丈六道391', zip:'503-2304'},
+  {name:'常蓮院', sect:'浄土宗', city:'安八郡神戸町', address:'安八郡神戸町神戸461', zip:'503-2305'},
+  {name:'広善寺', sect:'真宗高田派', city:'安八郡神戸町', address:'安八郡神戸町神戸542', zip:'503-2305'},
+  {name:'明徳寺', sect:'真宗大谷派', city:'安八郡神戸町', address:'安八郡神戸町神戸387', zip:'503-2305'},
+  // 岐阜市
+  {name:'養教寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市東島62-1', zip:'502-0913'},
+  {name:'阿願寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市東島60-1', zip:'502-0913'},
+  {name:'安養院', sect:'単立', city:'岐阜市', address:'岐阜市則武本郷2369', zip:'502-0931'},
+  {name:'真宗寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市日光町1-68', zip:'502-0933'},
+  {name:'尊照寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市則武西2-25-27', zip:'502-0939'},
+  {name:'善光教会', sect:'浄土宗', city:'岐阜市', address:'岐阜市城田寺241', zip:'502-0859'},
+  {name:'専教寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市城田寺606', zip:'502-0859'},
+  {name:'法勝寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市城田寺2792', zip:'502-0859'},
+  {name:'舎衛寺', sect:'真言宗御室派', city:'岐阜市', address:'岐阜市城田寺1821', zip:'502-0859'},
+  {name:'乾徳寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市城田寺1779', zip:'502-0859'},
+  {name:'常国寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市城田寺1140', zip:'502-0859'},
+  {name:'真蔵寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市島栄町3-43', zip:'502-0904'},
+  {name:'こしき地蔵堂', sect:'単立', city:'岐阜市', address:'岐阜市近島353-1', zip:'502-0908'},
+  {name:'極楽寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市白菊町3-22', zip:'502-0909'},
+  {name:'崇福寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市長良福光2403-1', zip:'502-0817'},
+  {name:'法光寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市鷺山447', zip:'502-0851'},
+  {name:'弘専寺', sect:'単立', city:'岐阜市', address:'岐阜市鷺山字中洙1767-13', zip:'502-0851'},
+  {name:'専法寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長良東郷町3-5', zip:'502-0022'},
+  {name:'鷺山観音会', sect:'単立', city:'岐阜市', address:'岐阜市鷺山387-1', zip:'502-0851'},
+  {name:'法久寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長良法久寺町4', zip:'502-0038'},
+  {name:'影現寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市正木1294', zip:'502-0857'},
+  {name:'専応寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長良76', zip:'502-0071'},
+  {name:'心洞寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市正木1517-1', zip:'502-0857'},
+  {name:'真性寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市長良129-1', zip:'502-0071'},
+  {name:'安養寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市下土居452', zip:'502-0858'},
+  {name:'松月庵', sect:'浄土宗', city:'岐阜市', address:'岐阜市長良田中町2631-2-1', zip:'502-0073'},
+  {name:'阿弥陀寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市長良2-2652', zip:'502-0081'},
+  {name:'薬師寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市椿洞393', zip:'502-0801'},
+  {name:'了義寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市椿洞220', zip:'502-0801'},
+  {name:'瑞昌寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市打越184-1', zip:'502-0802'},
+  {name:'日行庵', sect:'如来教', city:'岐阜市', address:'岐阜市上土居110-5', zip:'502-0803'},
+  {name:'冨春院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市上土居962', zip:'502-0803'},
+  {name:'妙徳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市八代3-15-5', zip:'502-0812'},
+  {name:'明厳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市福光東1-9-2', zip:'502-0813'},
+  {name:'法授院', sect:'天台寺門宗', city:'岐阜市', address:'岐阜市柳津町佐波2222', zip:'501-6121'},
+  {name:'済法寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市粟野西8-175', zip:'502-0006'},
+  {name:'善覚寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市柳津町高桑405', zip:'501-6122'},
+  {name:'清蔵寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市長良古津373', zip:'502-0011'},
+  {name:'慈恩寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市柳津町高桑166', zip:'501-6122'},
+  {name:'護国之寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市長良雄総194-1', zip:'502-0017'},
+  {name:'光衆寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市次木766', zip:'501-6132'},
+  {name:'願長寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市日置江292', zip:'501-6133'},
+  {name:'善了寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市日置江110', zip:'501-6133'},
+  {name:'本来寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市茶屋新田578', zip:'501-6135'},
+  {name:'重善寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市茶屋新田1107-1', zip:'501-6135'},
+  {name:'立専寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市粟野1286', zip:'502-0001'},
+  {name:'大龍寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市粟野2339', zip:'502-0001'},
+  {name:'珠泉院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市三田洞東3-25-1', zip:'502-0003'},
+  {name:'法華寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市三田洞131', zip:'502-0004'},
+  {name:'本光院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩崎2-1-21', zip:'502-0005'},
+  {name:'明道寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市岩田西1-376', zip:'501-3156'},
+  {name:'智照院', sect:'曹洞宗', city:'岐阜市', address:'岐阜市岩田西3-476', zip:'501-3156'},
+  {name:'林陽寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市岩田西3-402', zip:'501-3156'},
+  {name:'正岳院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市大洞1-23-22', zip:'501-3124'},
+  {name:'光沢寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市柳津町本郷2-17', zip:'501-6104'},
+  {name:'金動寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市芥見長山1-197', zip:'501-3132'},
+  {name:'観音寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市柳津町佐波4634', zip:'501-6121'},
+  {name:'漢松院', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見4671-1', zip:'501-3134'},
+  {name:'正蓮寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市柳津町佐波962', zip:'501-6121'},
+  {name:'真聖寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見2-91', zip:'501-3134'},
+  {name:'通徳寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市柳津町佐波2157', zip:'501-6121'},
+  {name:'正法寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見加野608', zip:'501-3134'},
+  {name:'薬王寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市芥見5083', zip:'501-3134'},
+  {name:'清水寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見海戸山142', zip:'501-3136'},
+  {name:'冷泉院', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見海戸山38', zip:'501-3136'},
+  {name:'円通院', sect:'曹洞宗', city:'岐阜市', address:'岐阜市芥見中野畑199', zip:'501-3141'},
+  {name:'真願寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市岩滝東1-336', zip:'501-3151'},
+  {name:'総純寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩滝西1-332', zip:'501-3152'},
+  {name:'大聖教会', sect:'金峯山修験本宗', city:'岐阜市', address:'岐阜市岩田坂1885-2', zip:'501-3155'},
+  {name:'精泰寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩田坂2013-112', zip:'501-3155'},
+  {name:'醍醐寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市石原3-60-1', zip:'501-2535'},
+  {name:'竜雲寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市芥見大船1-151', zip:'501-3114'},
+  {name:'清閑寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市世保東80', zip:'501-2542'},
+  {name:'永福寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市芥見町屋上2-160', zip:'501-3116'},
+  {name:'慈恩寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市溝口中138-1', zip:'501-2556'},
+  {name:'願成寺', sect:'真言宗智山派', city:'岐阜市', address:'岐阜市大洞1-21-2', zip:'501-3124'},
+  {name:'仏光寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市溝口中130', zip:'501-2556'},
+  {name:'浄土寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市福富647-1', zip:'501-2565'},
+  {name:'少林寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市福富1072', zip:'501-2565'},
+  {name:'船国寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市太郎丸新屋敷401-1', zip:'501-2576'},
+  {name:'真光寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市太郎丸1364-1', zip:'501-2577'},
+  {name:'良福寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市太郎丸丸知之道199', zip:'501-2577'},
+  {name:'吉祥寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市太郎丸2120', zip:'501-2577'},
+  {name:'竜翔寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市太郎丸2060', zip:'501-2577'},
+  {name:'延算寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市岩井397', zip:'501-3101'},
+  {name:'西光寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市加野862', zip:'501-3107'},
+  {name:'日王寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市加野922', zip:'501-3107'},
+  {name:'洞泉寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市加野869', zip:'501-3107'},
+  {name:'光明寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市石原3-10-1', zip:'501-2535'},
+  {name:'円福寺別院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市北山3-9-12', zip:'501-3113'},
+  {name:'阿弥陀寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市雛倉402', zip:'501-1181'},
+  {name:'明照寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市秋沢2-25', zip:'501-1182'},
+  {name:'明王寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市秋沢367', zip:'501-1182'},
+  {name:'円光寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市則松146', zip:'501-1183'},
+  {name:'明嚴寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市則松3-171', zip:'501-1183'},
+  {name:'善入寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西秋沢385', zip:'501-1184'},
+  {name:'浄音寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市三輪宮西240', zip:'501-2515'},
+  {name:'宝厳寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市雛倉792', zip:'501-1181'},
+  {name:'正蓮寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市三輪宮西369', zip:'501-2515'},
+  {name:'祐蓮寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市雛倉382', zip:'501-1181'},
+  {name:'長政寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市門屋門142', zip:'501-2528'},
+  {name:'乗船寺', sect:'真宗木辺派', city:'岐阜市', address:'岐阜市雛倉332', zip:'501-1181'},
+  {name:'龍峰寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市奥225-1', zip:'501-1185'},
+  {name:'丸山寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市山県北野1300', zip:'501-2502'},
+  {name:'円成寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市洞1073', zip:'501-1128'},
+  {name:'正法寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市小野598-1', zip:'501-1174'},
+  {name:'光順寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市黒野411-1', zip:'501-1131'},
+  {name:'西光寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市下西郷737-1', zip:'501-1175'},
+  {name:'専長寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市黒野399', zip:'501-1131'},
+  {name:'善応寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市下西郷760-1', zip:'501-1175'},
+  {name:'明善寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市黒野400', zip:'501-1131'},
+  {name:'地蔵寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市折立三ツ又607', zip:'501-1132'},
+  {name:'超勝寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市折立1', zip:'501-1132'},
+  {name:'願徳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市木田615-1', zip:'501-1135'},
+  {name:'佛心寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市木田1065-1', zip:'501-1135'},
+  {name:'金剛寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市木田1-200-2', zip:'501-1135'},
+  {name:'斎宮寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市木田498', zip:'501-1135'},
+  {name:'久成寺', sect:'日蓮正宗', city:'岐阜市', address:'岐阜市木田村松町3-3', zip:'501-1135'},
+  {name:'明専寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市下尻毛159', zip:'501-1146'},
+  {name:'安養寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市又丸923', zip:'501-1152'},
+  {name:'教徳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西改田村前61', zip:'501-1166'},
+  {name:'満願寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市御望', zip:'501-1171'},
+  {name:'多福院', sect:'曹洞宗', city:'岐阜市', address:'岐阜市交人465', zip:'501-1115'},
+  {name:'薬師寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市中屋241', zip:'501-1173'},
+  {name:'立江寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市江崎川添1087-3', zip:'501-0117'},
+  {name:'栄昌院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市佐野376', zip:'501-1101'},
+  {name:'養安寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市佐野443', zip:'501-1101'},
+  {name:'正蓮寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市岩利413-1', zip:'501-1102'},
+  {name:'安楽寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩利229', zip:'501-1102'},
+  {name:'慈眼寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩利884', zip:'501-1102'},
+  {name:'成功院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩利1111-1', zip:'501-1102'},
+  {name:'長泉寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩利254', zip:'501-1102'},
+  {name:'薬師寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市岩利27', zip:'501-1102'},
+  {name:'極楽寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市彦坂80-1', zip:'501-1105'},
+  {name:'正源寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市石谷495', zip:'501-1106'},
+  {name:'願明寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市河渡1248-1', zip:'501-0105'},
+  {name:'福満寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市石谷478', zip:'501-1106'},
+  {name:'薬師寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市鏡島2265-1', zip:'501-0111'},
+  {name:'東林寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市石谷505', zip:'501-1106'},
+  {name:'教寿寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市鏡島1689', zip:'501-0111'},
+  {name:'明達寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市玉姓町3-25', zip:'500-8846'},
+  {name:'大宝寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市大宝町2-1', zip:'500-8851'},
+  {name:'善福寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市千手堂北町2-2', zip:'500-8861'},
+  {name:'不動院', sect:'天台寺門宗', city:'岐阜市', address:'岐阜市千手堂北町1-1', zip:'500-8861'},
+  {name:'竜正教会', sect:'日蓮宗', city:'岐阜市', address:'岐阜市千手堂南町2-11', zip:'500-8863'},
+  {name:'峰雲寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市元宮町38', zip:'500-8869'},
+  {name:'岐阜別院', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西野町3-1', zip:'500-8882'},
+  {name:'上宮寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西野町3-4', zip:'500-8882'},
+  {name:'舩橋願誓寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西野町3-6', zip:'500-8882'},
+  {name:'真生会', sect:'単立', city:'岐阜市', address:'岐阜市西野町3-19', zip:'500-8882'},
+  {name:'宝樹寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市曽我屋1586', zip:'501-0101'},
+  {name:'永照寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市梅河町1-11', zip:'500-8815'},
+  {name:'超宗寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市曽我屋1663', zip:'501-0101'},
+  {name:'正覚院', sect:'天台寺門宗', city:'岐阜市', address:'岐阜市北八ツ寺町3番地', zip:'500-8824'},
+  {name:'光顔寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市一日市場376-1-1', zip:'501-0103'},
+  {name:'誓安寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市弥八町22', zip:'500-8827'},
+  {name:'円成寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市寺田852', zip:'501-0104'},
+  {name:'紀念堂', sect:'単立', city:'岐阜市', address:'岐阜市若宮町2-3', zip:'500-8828'},
+  {name:'最乗寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市寺田7-88', zip:'501-0104'},
+  {name:'円徳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市神田町6-24', zip:'500-8833'},
+  {name:'欣浄院', sect:'浄土宗', city:'岐阜市', address:'岐阜市加納栄町通り2-4', zip:'500-8455'},
+  {name:'瑞行寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市加納神明町1-29', zip:'500-8462'},
+  {name:'岐阜小僧伽', sect:'日本山妙法寺', city:'岐阜市', address:'岐阜市加納神明町6-10', zip:'500-8462'},
+  {name:'西方寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市加納新本町1-2', zip:'500-8463'},
+  {name:'圓明院', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市加納天神町2-28', zip:'500-8473'},
+  {name:'玉性院', sect:'真言宗醍醐派', city:'岐阜市', address:'岐阜市加納天神町3-8', zip:'500-8473'},
+  {name:'霊瑞寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市加納天神町3-7', zip:'500-8473'},
+  {name:'善徳寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市加納柳町33', zip:'500-8424'},
+  {name:'妙泉寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市加納伏見町16', zip:'500-8478'},
+  {name:'専福寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市加納新町48', zip:'500-8425'},
+  {name:'真念寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市佐久間町40', zip:'500-8803'},
+  {name:'水薬師寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市加納南広江町49', zip:'500-8426'},
+  {name:'美江寺', sect:'天台宗', city:'岐阜市', address:'岐阜市美江寺町2-3', zip:'500-8812'},
+  {name:'宝樹院', sect:'浄土宗', city:'岐阜市', address:'岐阜市加納清水町1-33', zip:'500-8429'},
+  {name:'岐阜教会', sect:'大乗教', city:'岐阜市', address:'岐阜市今川町2-18', zip:'500-8814'},
+  {name:'信浄寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市加納清水町1-29', zip:'500-8429'},
+  {name:'妙寿寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市加納八幡町22', zip:'500-8431'},
+  {name:'順勝寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市村里町22', zip:'500-8439'},
+  {name:'地蔵院', sect:'法相宗', city:'岐阜市', address:'岐阜市加納鉄砲町3-56', zip:'500-8453'},
+  {name:'妙唱寺', sect:'本門佛立宗', city:'岐阜市', address:'岐阜市加納永井町2-38', zip:'500-8454'},
+  {name:'慶安寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市下奈良2-31-7', zip:'500-8385'},
+  {name:'円福寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市藪田中1-9-15', zip:'500-8387'},
+  {name:'快楽寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市本荘出雲', zip:'500-8389'},
+  {name:'法隆寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市五反田町17', zip:'500-8328'},
+  {name:'玄竜寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市幸ノ町1-4', zip:'500-8409'},
+  {name:'真誠寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市羽衣町1-16', zip:'500-8332'},
+  {name:'善超寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市清本町6-1', zip:'500-8351'},
+  {name:'慶善寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市六条東1-14-8', zip:'500-8353'},
+  {name:'安祥院', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市西荘625', zip:'500-8362'},
+  {name:'千光院', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市西荘3-7-26', zip:'500-8362'},
+  {name:'立政寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市西荘3-7-11', zip:'500-8362'},
+  {name:'西勝寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西荘4-28-1', zip:'500-8362'},
+  {name:'敬念寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市西荘714', zip:'500-8362'},
+  {name:'浄応寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市市橋5-14-3', zip:'500-8381'},
+  {name:'願了寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市藪田東2-3-8', zip:'500-8382'},
+  {name:'盛徳寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市加納奥平町1-22', zip:'500-8272'},
+  {name:'観音寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市加納南陽町2-70', zip:'500-8276'},
+  {name:'波切不動天光教会', sect:'真言宗醍醐派', city:'岐阜市', address:'岐阜市茜部野瀬3-203', zip:'500-8283'},
+  {name:'福泉寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市西鶉4-139-1', zip:'500-8286'},
+  {name:'深広寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市中鶉4-109-1', zip:'500-8288'},
+  {name:'万誓寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市中鶉5-105', zip:'500-8288'},
+  {name:'了福寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市中鶉6-173-1', zip:'500-8288'},
+  {name:'正念寺', sect:'単立', city:'岐阜市', address:'岐阜市本郷町1-6', zip:'500-8302'},
+  {name:'願成寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市春日町2-45', zip:'500-8303'},
+  {name:'専願寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市春日町2', zip:'500-8303'},
+  {name:'第五妙法精神教会', sect:'法華宗(本門流)', city:'岐阜市', address:'岐阜市柳川町17', zip:'500-8304'},
+  {name:'浄性寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市茜部本郷3-116-2', zip:'500-8262'},
+  {name:'岐阜教会', sect:'日蓮宗', city:'岐阜市', address:'岐阜市沖の橋町3-30', zip:'500-8305'},
+  {name:'浄安寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市茜部新所4-30', zip:'500-8263'},
+  {name:'妙円寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市鍵屋西町2-4', zip:'500-8314'},
+  {name:'慧光教会', sect:'真言宗醍醐派', city:'岐阜市', address:'岐阜市茜部辰新1-164', zip:'500-8264'},
+  {name:'薬師寺', sect:'単立', city:'岐阜市', address:'岐阜市鍵屋西町2-4', zip:'500-8314'},
+  {name:'専慶寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市茜部寺屋敷3-224', zip:'500-8267'},
+  {name:'西福寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市島田西町85', zip:'500-8317'},
+  {name:'法源寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市加納奥平町1-78', zip:'500-8272'},
+  {name:'慈眼寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市長森岩戸835-1', zip:'500-8229'},
+  {name:'上宮寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市前一色3-2-7', zip:'500-8232'},
+  {name:'願照寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市蔵前6-14-12', zip:'500-8233'},
+  {name:'一心不動院', sect:'真言宗醍醐派', city:'岐阜市', address:'岐阜市芋島1-10-18', zip:'500-8234'},
+  {name:'浄慶寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市切通6-15-21', zip:'500-8237'},
+  {name:'真宗寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市細畑4-3-13', zip:'500-8238'},
+  {name:'誓賢寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長森細畑町906-2', zip:'500-8247'},
+  {name:'不動閣不動院', sect:'天台宗', city:'岐阜市', address:'岐阜市日野西町2-9-10', zip:'500-8213'},
+  {name:'竹腰正福寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市東川手1-15', zip:'500-8257'},
+  {name:'正蔵寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市水海道3-9-8', zip:'500-8223'},
+  {name:'大日寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市西川手4-10', zip:'500-8258'},
+  {name:'水月寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市岩地2-9-18', zip:'500-8225'},
+  {name:'慈済寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市西川手4-23', zip:'500-8258'},
+  {name:'敬念寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市野一色2-16-15', zip:'500-8226'},
+  {name:'山上院', sect:'浄土宗', city:'岐阜市', address:'岐阜市茜部大野町1-22', zip:'500-8261'},
+  {name:'全超寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市野一色8-7-10', zip:'500-8226'},
+  {name:'天衣寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市野一色1-10-6', zip:'500-8226'},
+  {name:'香厳寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市北一色6-18-33', zip:'500-8227'},
+  {name:'弘峰寺', sect:'高野山真言宗', city:'岐阜市', address:'岐阜市長森岩戸944-99', zip:'500-8229'},
+  {name:'善龍寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長森岩戸832-1', zip:'500-8229'},
+  {name:'善照寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市雲竜町18', zip:'500-8123'},
+  {name:'賢隆寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市九重町2-6', zip:'500-8146'},
+  {name:'浄土院', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市東駒爪町井16', zip:'500-8168'},
+  {name:'蓮孝寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市多賀町26', zip:'500-8101'},
+  {name:'善林寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市高森町7-2', zip:'500-8171'},
+  {name:'金屋教会', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市朝日町298', zip:'500-8109'},
+  {name:'浄信寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市長住町8-1', zip:'500-8175'},
+  {name:'竜興寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市梅林6', zip:'500-8111'},
+  {name:'西覚寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市吉津町2-8', zip:'500-8187'},
+  {name:'光明寺', sect:'単立(浄土真宗東本願寺派)', city:'岐阜市', address:'岐阜市金竜町3-9', zip:'500-8114'},
+  {name:'誓源寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市日野東1-11-35', zip:'500-8211'},
+  {name:'妙法精神教会', sect:'日蓮宗', city:'岐阜市', address:'岐阜市殿町2-28', zip:'500-8116'},
+  {name:'雲竜院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'臥雲院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'開善院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19番地', zip:'500-8118'},
+  {name:'瑞雲院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'瑞竜寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'鶴棲院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'天沢院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市寺町19', zip:'500-8118'},
+  {name:'仏国寺', sect:'単立', city:'岐阜市', address:'岐阜市上加納山4720-40', zip:'500-8121'},
+  {name:'浄土寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市鶯谷町1', zip:'500-8053'},
+  {name:'勝林寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市木造町6-1', zip:'500-8086'},
+  {name:'願正坊', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市大門町3', zip:'500-8054'},
+  {name:'正興寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市木造町13-1', zip:'500-8086'},
+  {name:'岐阜別院', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市大門町1', zip:'500-8054'},
+  {name:'護国寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市木造町31-1', zip:'500-8086'},
+  {name:'上宮寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市大門町12', zip:'500-8054'},
+  {name:'圓竜寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市大門町18', zip:'500-8054'},
+  {name:'慈恩寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市大門町23', zip:'500-8054'},
+  {name:'善行寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市笹土居町52', zip:'500-8055'},
+  {name:'正道院', sect:'浄土宗', city:'岐阜市', address:'岐阜市柳沢町9', zip:'500-8064'},
+  {name:'本覚寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市泉町26', zip:'500-8073'},
+  {name:'円経寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市泉町34', zip:'500-8073'},
+  {name:'本誓寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市矢島町2-46', zip:'500-8082'},
+  {name:'現正寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市矢島町1-75', zip:'500-8082'},
+  {name:'長照寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市矢島町1-74', zip:'500-8082'},
+  {name:'法華寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市矢島町1-55', zip:'500-8082'},
+  {name:'即得寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市木造町49', zip:'500-8086'},
+  {name:'岐山教会', sect:'大乗教', city:'岐阜市', address:'岐阜市駿河山1-3', zip:'500-8051'},
+  {name:'蓮生寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市木造町10-1', zip:'500-8086'},
+  {name:'浄安寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市中大桑町31', zip:'500-8027'},
+  {name:'真光寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市中大桑町21', zip:'500-8027'},
+  {name:'法運寺', sect:'真宗大谷派', city:'岐阜市', address:'岐阜市西材木町9', zip:'500-8028'},
+  {name:'普賢寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市甚衛町5', zip:'500-8036'},
+  {name:'法光寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市下新町36', zip:'500-8037'},
+  {name:'天神仏教会', sect:'単立', city:'岐阜市', address:'岐阜市末広町30', zip:'500-8042'},
+  {name:'誓願寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市伊奈波通り1-43', zip:'500-8043'},
+  {name:'清泰寺', sect:'浄土宗', city:'岐阜市', address:'岐阜市松ケ枝町21', zip:'500-8016'},
+  {name:'善澄寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市伊奈波通り1-65', zip:'500-8043'},
+  {name:'常在寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市梶川町9', zip:'500-8017'},
+  {name:'安乗院善光寺', sect:'真言宗醍醐派', city:'岐阜市', address:'岐阜市伊奈波通1-8', zip:'500-8043'},
+  {name:'妙照寺', sect:'日蓮宗', city:'岐阜市', address:'岐阜市梶川町14', zip:'500-8017'},
+  {name:'栽松寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市伊奈波通り1-27', zip:'500-8043'},
+  {name:'正法寺', sect:'黄檗宗', city:'岐阜市', address:'岐阜市大仏町8', zip:'500-8018'},
+  {name:'大泉寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市万力町7', zip:'500-8044'},
+  {name:'覚林寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市益屋町8', zip:'500-8019'},
+  {name:'真福寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市長良真福寺2492', zip:'500-0000'},
+  {name:'切通観音堂', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市長森切通6-5-7', zip:'500-0000'},
+  {name:'禅林寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市槻谷13-3', zip:'500-0000'},
+  {name:'船若寺', sect:'天台宗', city:'岐阜市', address:'岐阜市木挽町4', zip:'500-8011'},
+  {name:'岐陽院', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市木挽町1', zip:'500-8011'},
+  {name:'霊天庵', sect:'浄土宗', city:'岐阜市', address:'岐阜市宮口町3-23', zip:'500-0000'},
+  {name:'地蔵寺', sect:'臨済宗妙心寺派', city:'岐阜市', address:'岐阜市木挽町15', zip:'500-8011'},
+  {name:'善政寺', sect:'浄土宗西山禅林寺派', city:'岐阜市', address:'岐阜市鏡町112', zip:'500-0000'},
+  {name:'自福寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市松山町13', zip:'500-8015'},
+  {name:'覚願寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長良北町1', zip:'500-0000'},
+  {name:'真竜寺', sect:'浄土真宗本願寺派', city:'岐阜市', address:'岐阜市長良清水2510-1', zip:'500-0000'},
+  {name:'建福寺', sect:'西山浄土宗', city:'岐阜市', address:'岐阜市森191-1', zip:'500-0000'},
+  {name:'観音寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市長良志段味595-1', zip:'500-0000'},
+  {name:'久運寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市義加納天神町4-22', zip:'500-0000'},
+  {name:'大覚寺', sect:'曹洞宗', city:'岐阜市', address:'岐阜市長良西山2550', zip:'500-0000'},
+  {name:'専成寺', sect:'単立', city:'岐阜市', address:'岐阜市長良字山先720-1', zip:'500-0000'},
+  {name:'宝蔵寺', sect:'単立', city:'岐阜市', address:'岐阜市長森水海道西1561', zip:'500-0000'},
+  {name:'金華教会', sect:'日蓮宗', city:'岐阜市', address:'岐阜市長森切通7-15-3', zip:'500-0000'},
+];
+
+// State from localStorage
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('gifuTempleState') || '{}'); } catch(e) { return {}; }
+}
+
+function saveState(state) {
+  try {
+    localStorage.setItem('gifuTempleState', JSON.stringify(state));
+    showSaveNotice();
+  } catch(e) {}
+}
+
+let state = loadState();
+
+// Init temples with IDs and user state
+const temples = TEMPLES_RAW.map((t, i) => {
+  const id = `t${i}`;
+  const saved = state[id] || {};
+  return {
+    ...t,
+    id,
+    tel: saved.tel || '',
+    funeral: saved.funeral || 'unknown', // yes/no/unknown
+    tags: saved.tags || [],
+    memo: saved.memo || '',
+  };
+});
+
+function getTempleState(id) {
+  return state[id] || {};
+}
+
+function updateTempleField(id, field, value) {
+  if (!state[id]) state[id] = {};
+  state[id][field] = value;
+  saveState(state);
+}
+
+// Sect badge class
+function sectClass(sect) {
+  if (sect.includes('本願寺派')) return 'sect-jodoshinshu-honganji';
+  if (sect.includes('大谷派')) return 'sect-jodoshinshu-otani';
+  if (sect.includes('浄土宗')) return 'sect-jodo';
+  if (sect.includes('臨済')) return 'sect-rinzai';
+  if (sect.includes('真言')) return 'sect-shingon';
+  return 'sect-other';
+}
+
+function funeralLabel(val) {
+  if (val === 'yes') return '<span style="color:var(--moss);font-weight:600;">✓ 対応</span>';
+  if (val === 'no') return '<span style="color:var(--red);">✗ 不可</span>';
+  return '<span style="color:#bbb;">未確認</span>';
+}
+
+// Populate filter dropdowns
+function populateFilters() {
+  const allSects = [...new Set(temples.map(t => t.sect))].sort();
+  // 真言宗系をまとめる
+  const SHINGON_GROUP = '真言宗（各派）';
+  const shingonPattern = /真言宗/;
+  const sects = [];
+  let shingonAdded = false;
+  allSects.forEach(s => {
+    if (shingonPattern.test(s)) {
+      if (!shingonAdded) { sects.push(SHINGON_GROUP); shingonAdded = true; }
+    } else {
+      sects.push(s);
+    }
+  });
+
+  const sectSel = document.getElementById('filterSect');
+  sects.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    sectSel.appendChild(o);
+  });
+
+  const cities = [...new Set(temples.map(t => t.city))].sort();
+  const citySel = document.getElementById('filterCity');
+  cities.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    citySel.appendChild(o);
+  });
+}
+
+let filtered = [...temples];
+
+let activeTags = new Set();
+
+// ===== カスタム絞り込みタグ =====
+const DEFAULT_FILTER_TAGS = ["15.16時通夜OK","寺式場あり","準提携","出棺遅れ注意","当日初七日NG","当日初七日NG還骨OK","寺院が他社葬儀社勤務","初七日長い","住職不在","2人でお勤め（葬）","散華あり（三奉請）","分骨小必須","おかみそり→窓","位牌 火葬しない","本尊の前 位牌・遺影NG","火葬場行かない","表白 棺に入れる","三十五日忌明け","当日還骨 初七日　お寺にて","還骨NG","温厚・やさしい","女性住職","合葬墓あり"];
+let customFilterTags = JSON.parse(localStorage.getItem('customFilterTags') || 'null');
+if (!customFilterTags) {
+  customFilterTags = [...DEFAULT_FILTER_TAGS];
+  localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+} else {
+  // デフォルトタグで未追加のものを補完
+  DEFAULT_FILTER_TAGS.forEach(t => { if (!customFilterTags.includes(t)) customFilterTags.push(t); });
+  localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+}
+
+function renderCustomFilterTags() {
+  const container = document.getElementById('customFilterTags');
+  if (!container) return;
+  container.innerHTML = '';
+  customFilterTags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'custom-filter-tag-btn' + (activeTags.has(tag) ? ' active' : '');
+    const safeTag = tag.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    btn.innerHTML = `<span onclick="setCustomTagFilter(this.parentElement,'${safeTag}')">${tag}</span><span class="remove-filter-tag" onclick="removeCustomFilterTag('${safeTag}',event)">×</span>`;
+    container.appendChild(btn);
+  });
+}
+
+function showFilterTagInput() {
+  document.getElementById('btnAddFilterTag').style.display = 'none';
+  const wrap = document.getElementById('filterTagInputWrap');
+  wrap.style.display = 'inline-flex';
+  setTimeout(() => document.getElementById('filterTagInput').focus(), 50);
+}
+
+function hideFilterTagInput() {
+  document.getElementById('filterTagInput').value = '';
+  document.getElementById('filterTagInputWrap').style.display = 'none';
+  document.getElementById('btnAddFilterTag').style.display = '';
+}
+
+function addFilterTag() {
+  const val = document.getElementById('filterTagInput').value.trim();
+  if (!val) return;
+  if (!customFilterTags.includes(val)) {
+    customFilterTags.push(val);
+    localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+    renderCustomFilterTags();
+  }
+  hideFilterTagInput();
+}
+
+function removeCustomFilterTag(tag, e) {
+  e.stopPropagation();
+  activeTags.delete(tag);
+  customFilterTags = customFilterTags.filter(t => t !== tag);
+  localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+  renderCustomFilterTags();
+  if (activeTags.size === 0) document.querySelector('.tag-filter-btn[data-tag=""]').classList.add('active');
+  applyFilters();
+}
+
+function setCustomTagFilter(btn, tag) {
+  document.querySelector('.tag-filter-btn[data-tag=""]').classList.remove('active');
+  if (activeTags.has(tag)) {
+    activeTags.delete(tag);
+    btn.classList.remove('active');
+  } else {
+    activeTags.add(tag);
+    btn.classList.add('active');
+  }
+  if (activeTags.size === 0) document.querySelector('.tag-filter-btn[data-tag=""]').classList.add('active');
+  applyFilters();
+}
+
+const _filterTagInput = document.getElementById('filterTagInput');
+if (_filterTagInput) {
+  _filterTagInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addFilterTag();
+    if (e.key === 'Escape') hideFilterTagInput();
+  });
+}
+
+function setTagFilter(btn, tag) {
+  if (tag === '') {
+    // すべて → 全解除
+    activeTags.clear();
+    document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    // 「すべて」ボタンを外す
+    document.querySelector('.tag-filter-btn[data-tag=""]').classList.remove('active');
+    if (activeTags.has(tag)) {
+      activeTags.delete(tag);
+      btn.classList.remove('active');
+    } else {
+      activeTags.add(tag);
+      btn.classList.add('active');
+    }
+    // 何も選ばれていなければ「すべて」を戻す
+    if (activeTags.size === 0) {
+      document.querySelector('.tag-filter-btn[data-tag=""]').classList.add('active');
+    }
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  const name = document.getElementById('searchName').value.trim();
+  const sect = document.getElementById('filterSect').value;
+  const city = document.getElementById('filterCity').value;
+  const funeral = document.getElementById('filterFuneral').value;
+  filtered = temples.filter(t => {
+    if (name && !t.name.includes(name)) return false;
+    if (sect && sect === '真言宗（各派）') {
+      if (!/真言宗/.test(t.sect)) return false;
+    } else if (sect && t.sect !== sect) return false;
+    if (city && t.city !== city) return false;
+    if (funeral && t.funeral !== funeral) return false;
+    if (activeTags.size > 0 && !t.tags.some(tg => activeTags.has(tg))) return false;
+    return true;
+  });
+
+  renderTable();
+}
+
+function resetFilters() {
+  document.getElementById('searchName').value = '';
+  document.getElementById('filterSect').value = '';
+  document.getElementById('filterCity').value = '';
+  document.getElementById('filterFuneral').value = '';
+  activeTags.clear();
+  document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tag-filter-btn[data-tag=""]').classList.add('active');
+  filtered = [...temples];
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  const noResults = document.getElementById('noResults');
+  
+  document.getElementById('resultCount').textContent = filtered.length;
+  document.getElementById('headerCount').textContent = `全 ${temples.length} 件`;
+
+  const partnerCount = temples.filter(t => t.tags.includes('提携')).length;
+  document.getElementById('partnerCount').textContent = 
+    partnerCount > 0 ? `⭐ 提携寺院 ${partnerCount} 件` : '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(t => `
+    <tr>
+      <td class="col-name">${t.name}</td>
+      <td><span class="sect-badge ${sectClass(t.sect)}">${t.sect}</span></td>
+      <td style="font-size:13px;color:var(--stone)">${t.city}</td>
+      <td class="col-addr">
+        〒${t.zip}<br>
+        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.address)}" 
+           target="_blank" 
+           title="Googleマップで開く"
+           style="color:var(--moss);text-decoration:none;border-bottom:1px dashed var(--moss);font-size:12.5px;line-height:1.8;"
+           onmouseover="this.style.color='var(--moss-light)'" 
+           onmouseout="this.style.color='var(--moss)'">
+          📍 ${t.address}
+        </a><br>
+        <input class="memo-input" style="margin-top:4px;font-size:12px;" 
+          placeholder="電話番号を入力…" value="${t.tel}"
+          onchange="updateField('${t.id}','tel',this.value); getTempleById('${t.id}').tel=this.value;">
+      </td>
+      <td>
+        <select onchange="updateField('${t.id}','funeral',this.value); getTempleById('${t.id}').funeral=this.value; renderTable();"
+          style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:white;font-family:'Noto Sans JP',sans-serif;cursor:pointer;outline:none;">
+          <option value="unknown" ${t.funeral==='unknown'?'selected':''}>未確認</option>
+          <option value="yes" ${t.funeral==='yes'?'selected':''}>✓ 対応</option>
+          <option value="no" ${t.funeral==='no'?'selected':''}>✗ 不可</option>
+        </select>
+      </td>
+      <td>
+        <div class="tag-cell" id="tags-${t.id}">
+          ${t.tags.map(tag => `
+            <span class="tag ${tag==='提携'?'tag-partner':''}">
+              ${tag}
+              <span class="tag-remove" onclick="removeTag('${t.id}','${tag}')">×</span>
+            </span>
+          `).join('')}
+          <button class="btn-tag" onclick="addTag('${t.id}')">＋</button>
+        </div>
+      </td>
+      <td>
+        <textarea class="memo-input" rows="1" placeholder="メモを入力…"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';"
+          onchange="updateField('${t.id}','memo',this.value); getTempleById('${t.id}').memo=this.value;">${t.memo}</textarea>
+      </td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('.memo-input').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  });
+}
+
+function getTempleById(id) {
+  return temples.find(t => t.id === id);
+}
+
+function updateField(id, field, value) {
+  updateTempleField(id, field, value);
+}
+
+function addTag(id) {
+  const cell = document.getElementById('tags-' + id);
+  // If inline input already exists, focus it
+  if (cell.querySelector('.tag-input-wrap')) {
+    cell.querySelector('.tag-text-input').focus();
+    return;
+  }
+  const basePresets = ['提携', '勤行中 焼香OK', 'お経長い', '話が長い', '要注意', '空き寺', '兼任寺'];
+  const presets = [...new Set([...basePresets, ...customFilterTags])];
+  const temple = getTempleById(id);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'tag-input-wrap';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:4px;';
+
+  const inputRow = document.createElement('div');
+  inputRow.style.cssText = 'display:flex;gap:4px;align-items:center;';
+
+  const input = document.createElement('input');
+  input.className = 'tag-text-input';
+  input.placeholder = 'タグ名…';
+  input.style.cssText = 'font-family:"Noto Sans JP",sans-serif;font-size:12px;padding:4px 8px;border:1.5px solid var(--moss);border-radius:6px;width:90px;outline:none;';
+
+  const addBtn = document.createElement('button');
+  addBtn.textContent = '追加';
+  addBtn.style.cssText = 'font-family:"Noto Sans JP",sans-serif;font-size:11px;padding:4px 8px;background:var(--moss);color:white;border:none;border-radius:6px;cursor:pointer;';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✕';
+  cancelBtn.style.cssText = 'font-size:11px;padding:4px 7px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--stone);';
+
+  function doAdd() {
+    const tag = input.value.trim();
+    if (tag && !temple.tags.includes(tag)) {
+      temple.tags.push(tag);
+      updateField(id, 'tags', temple.tags);
+      // プリセットにない新規タグは「タグで絞り込み」にも追加
+      const basePresets = ['提携', '勤行中 焼香OK', 'お経長い', '話が長い', '要注意', '空き寺', '兼任寺'];
+      if (!basePresets.includes(tag) && !customFilterTags.includes(tag)) {
+        customFilterTags.push(tag);
+        localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+        renderCustomFilterTags();
+      }
+    }
+    renderTable();
+  }
+
+  addBtn.onclick = doAdd;
+  cancelBtn.onclick = () => renderTable();
+  input.onkeydown = (e) => { if (e.key === 'Enter') doAdd(); if (e.key === 'Escape') renderTable(); };
+
+  inputRow.appendChild(input);
+  inputRow.appendChild(addBtn);
+  inputRow.appendChild(cancelBtn);
+
+  // Preset buttons
+  const presetRow = document.createElement('div');
+  presetRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:3px;';
+  presets.forEach(p => {
+    if (temple.tags.includes(p)) return;
+    const pb = document.createElement('button');
+    pb.textContent = p;
+    pb.style.cssText = 'font-family:"Noto Sans JP",sans-serif;font-size:11px;padding:2px 7px;background:#f0f0f0;border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--stone);';
+    pb.onclick = () => { input.value = p; doAdd(); };
+    presetRow.appendChild(pb);
+  });
+
+  wrap.appendChild(inputRow);
+  wrap.appendChild(presetRow);
+  cell.appendChild(wrap);
+  input.focus();
+}
+
+function removeTag(id, tag) {
+  const temple = getTempleById(id);
+  temple.tags = temple.tags.filter(t => t !== tag);
+  updateField(id, 'tags', temple.tags);
+  renderTable();
+}
+
+function showSaveNotice() {
+  const el = document.getElementById('saveNotice');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function exportCSV() {
+  const header = ['寺院名','宗派','市区町村','住所','郵便番号','電話番号','葬儀対応','タグ','備考'];
+  const rows = temples.map(t => [
+    t.name, t.sect, t.city, t.address, t.zip, t.tel,
+    t.funeral === 'yes' ? '対応' : t.funeral === 'no' ? '不可' : '未確認',
+    t.tags.join('|'), t.memo
+  ]);
+  const dataCSV = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  // 末尾に絞り込みタグを埋め込む
+  const filterTagLine = '#FILTER_TAGS:' + customFilterTags.join('|');
+  const csv = dataCSV + '\n' + filterTagLine;
+  document.getElementById('csvOutputArea').value = csv;
+  document.getElementById('csvExportModal').classList.add('open');
+}
+
+function selectAllCSV() {
+  const area = document.getElementById('csvOutputArea');
+  area.focus();
+  area.select();
+}
+
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const text = e.target.result.replace(/^\uFEFF/, ''); // BOM除去
+      let csvText = text;
+
+      // 末尾行に絞り込みタグが埋め込まれているか確認
+      const allLines = text.split('\n');
+      const lastLine = allLines[allLines.length - 1].trim() || allLines[allLines.length - 2].trim();
+      if (lastLine.startsWith('#FILTER_TAGS:')) {
+        const tagStr = lastLine.slice('#FILTER_TAGS:'.length).trim();
+        const importedTags = tagStr ? tagStr.split('|').map(t => t.trim()).filter(Boolean) : [];
+        const basePresets = ['提携', '勤行中 焼香OK', 'お経長い', '話が長い', '要注意', '空き寺', '兼任寺'];
+        // 既存タグを一度クリアして再構築
+        customFilterTags = [...importedTags.filter(t => !basePresets.includes(t))];
+        localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+        renderCustomFilterTags();
+        // 末尾の#FILTER_TAGS行を除いてCSV処理
+        csvText = allLines.filter(l => !l.trim().startsWith('#FILTER_TAGS:')).join('\n');
+      }
+
+      const lines = csvText.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { alert('データが見つかりません。'); return; }
+
+      // CSVパース（ダブルクォート対応）
+      function parseRow(line) {
+        const result = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const c = line[i];
+          if (inQ) {
+            if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+            else if (c === '"') { inQ = false; }
+            else { cur += c; }
+          } else {
+            if (c === '"') { inQ = true; }
+            else if (c === ',') { result.push(cur); cur = ''; }
+            else { cur += c; }
+          }
+        }
+        result.push(cur);
+        return result;
+      }
+
+      const headers = parseRow(lines[0]);
+      // 列インデックス確認
+      const idx = {
+        name: headers.indexOf('寺院名'),
+        tel:  headers.indexOf('電話番号'),
+        funeral: headers.indexOf('葬儀対応'),
+        tags: headers.indexOf('タグ'),
+        memo: headers.indexOf('備考')
+      };
+      if (idx.name === -1) { alert('CSVの形式が正しくありません。'); return; }
+
+      let updated = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseRow(lines[i]);
+        const name = cols[idx.name]?.trim();
+        if (!name) continue;
+        const temple = temples.find(t => t.name === name);
+        if (!temple) continue;
+
+        if (idx.tel >= 0 && cols[idx.tel] !== undefined) temple.tel = cols[idx.tel];
+        if (idx.funeral >= 0 && cols[idx.funeral] !== undefined) {
+          const f = cols[idx.funeral];
+          temple.funeral = f === '対応' ? 'yes' : f === '不可' ? 'no' : 'unknown';
+        }
+        if (idx.tags >= 0 && cols[idx.tags] !== undefined) {
+          const rawTags = cols[idx.tags].trim();
+          temple.tags = rawTags ? rawTags.split('|').map(t => t.trim()).filter(Boolean) : [];
+        }
+        if (idx.memo >= 0 && cols[idx.memo] !== undefined) temple.memo = cols[idx.memo];
+
+        // stateに保存
+        updateTempleField(temple.id, 'tel', temple.tel);
+        updateTempleField(temple.id, 'funeral', temple.funeral);
+        updateTempleField(temple.id, 'tags', temple.tags);
+        updateTempleField(temple.id, 'memo', temple.memo);
+        updated++;
+      }
+
+      applyFilters();
+      alert(`✅ ${updated}件のデータを読み込みました。`);
+    } catch(err) {
+      alert('読み込みに失敗しました：' + err.message);
+    }
+    input.value = ''; // 同じファイルを再選択できるようリセット
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// Sync state into temples on load
+// CSVから取り込んだ初期データ
+const DEFAULT_TEMPLE_DATA = {"大日院瑞光寺|瑞穂市":{"tel":"","funeral":"yes","tags":["温厚・やさしい"],"memo":"・6寸・8寸位牌火葬しない\n・8寸→初七日後 寺院持ち帰り\n6寸→当家持ち帰り"},"光行寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":""},"蓮光寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":""},"西満寺|瑞穂市":{"tel":"","funeral":"yes","tags":["準提携","温厚・やさしい"],"memo":""},"徳源寺|瑞穂市":{"tel":"","funeral":"yes","tags":["提携","勤行中 焼香OK","温厚・やさしい"],"memo":""},"即心院|瑞穂市":{"tel":"","funeral":"yes","tags":["初七日長い"],"memo":"・枕経の際に位牌持帰らない\n・通夜では8寸位牌（紙巻いたまま）を祭壇安置（戒名書いていない）\n・通夜後に8寸 6寸持ち帰り\n・葬儀の際に8寸 6寸 を預かり、祭壇安置\n・枕経の際に 故人枕元に経本を置いていかれる（葬儀出棺の際か、初七日後まで置いたままにする）\n※いつ下げるのか寺院へ確認が必要\n・通夜後、焼香台にも経本を置いていかれる（そのままにしておく）\n・焼香作法は通夜前に喪主家族にのみレクチャーされる\n・その都度 転座されるか確認が必要"},"良縁寺|瑞穂市":{"tel":"","funeral":"yes","tags":["15.16時通夜OK"],"memo":""},"蓮生寺|瑞穂市":{"tel":"","funeral":"unknown","tags":["要注意"],"memo":"打合せの際、スタッフは座布団に座らないように。"},"興禅寺|瑞穂市":{"tel":"","funeral":"unknown","tags":["住職不在"],"memo":""},"通玄寺|瑞穂市":{"tel":"","funeral":"yes","tags":["温厚・やさしい"],"memo":"幼稚園経営"},"念徳寺|瑞穂市":{"tel":"","funeral":"yes","tags":["話が長い","初七日長い"],"memo":"初七日 1時間"},"徳隣寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":""},"教泉寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":"帰敬式の際 喪主立会いなし"},"正蓮寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":""},"願照寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":"・住職は郵便局勤務"},"広讃寺|瑞穂市":{"tel":"","funeral":"yes","tags":["要注意","合葬墓あり"],"memo":"・祭壇に落雁を供える事"},"浄明寺|瑞穂市":{"tel":"","funeral":"yes","tags":[],"memo":""},"専念寺|本巣市":{"tel":"","funeral":"yes","tags":["分骨小必須"],"memo":""},"西光寺|本巣市":{"tel":"","funeral":"yes","tags":["温厚・やさしい"],"memo":""},"祐国寺|本巣市":{"tel":"","funeral":"unknown","tags":["お経長い","話が長い","出棺遅れ注意","2人でお勤め（葬）"],"memo":"出棺の際 手作り折り鶴を用意される。\n長い、遅くなる。"},"善永寺|本巣市":{"tel":"","funeral":"yes","tags":["寺式場あり"],"memo":""},"増徳寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"正尊寺|本巣市":{"tel":"","funeral":"yes","tags":["寺式場あり","散華あり（三奉請）","位牌 火葬しない","火葬場行かない"],"memo":"・散華あり（台必須）\n・火葬場での繰上げ会食を嫌う"},"梅英寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"円勝寺|本巣市":{"tel":"","funeral":"unknown","tags":["要注意","話が長い","位牌 火葬しない","本尊の前 位牌・遺影NG"],"memo":"・本尊の正面に遺影、位牌を置かない\n・通夜開式の際 法名案内する事\n・通夜の際 導師の前に焼香鉢置かない\n・法礼袋 持参される\n・遺影と位牌ずらし（五反田・瑞穂は行わない）\n・お茶ではなく水をだす\n・通夜開式前に喪主を控室へお連れする（法礼袋など渡される）"},"金福寺|本巣市":{"tel":"","funeral":"yes","tags":["空き寺","兼任寺"],"memo":"・寺院は各務原から来られる"},"蓮教寺|本巣市":{"tel":"","funeral":"unknown","tags":["提携","勤行中 焼香OK","兼任寺","温厚・やさしい"],"memo":"余乗寺の檀家兼任"},"専光寺|本巣市":{"tel":"","funeral":"no","tags":["兼任寺","住職不在","空き寺"],"memo":"・福乗寺（小柿）が兼任\n（県外在住の息子に入電、息子が福乗寺に葬儀依頼する）\n★息子電話は檀家さんが把握？"},"浄蓮寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":"・住職は気が短い\n・中島さんを慕っている"},"福乗寺|本巣市":{"tel":"","funeral":"yes","tags":["兼任寺","温厚・やさしい"],"memo":"専光寺（宗慶）の檀家を兼任されている\n★専光寺の息子経由で葬儀依頼となる"},"西照寺|本巣市":{"tel":"","funeral":"yes","tags":["表白 棺に入れる"],"memo":""},"教念寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":"・法話は一休さん"},"光福寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"余浄寺|本巣市":{"tel":"","funeral":"no","tags":["住職不在","空き寺","兼任寺"],"memo":"住職不在\n蓮教寺さんが兼任"},"光明寺|本巣市":{"tel":"","funeral":"yes","tags":["寺院が他社葬儀社勤務"],"memo":"メモリア勤務"},"福応寺|本巣市":{"tel":"","funeral":"unknown","tags":["温厚・やさしい"],"memo":""},"光輪寺|本巣市":{"tel":"","funeral":"unknown","tags":["準提携","話が長い","初七日長い","寺式場あり"],"memo":"・初七日前に骨袋にシールを貼る\n・通夜、初七日で恩徳讃を歌う"},"慶円寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":"・林生花さんの菩提寺"},"常徳寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":"・たびたび体調を崩される\n・善永寺が時々 代わりに通夜でお勤めされる事がある"},"了仙寺|本巣市":{"tel":"","funeral":"yes","tags":["準提携","温厚・やさしい"],"memo":"・御布施額にこだわらず 紹介を引き受けてくださる"},"願成寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"悟春院|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":"・富士と墓地の提携をしている"},"弥勒寺|本巣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"善照寺|本巣市":{"tel":"","funeral":"yes","tags":["女性住職"],"memo":""},"圓鏡寺|本巣郡北方町":{"tel":"","funeral":"yes","tags":[],"memo":""},"西順寺|本巣郡北方町":{"tel":"090-9749-3170","funeral":"yes","tags":["話が長い","三十五日忌明け","女性住職"],"memo":"・法礼 料金表を喪主へ渡される。\n※法礼20万以上\n※永代経 当家判断\n・出棺先導し、先行して火葬場行かれる"},"妙勝寺|揖斐郡池田町":{"tel":"","funeral":"yes","tags":[],"memo":"6寸、塔婆不使用\n8寸のみ使用し、火葬しない"},"江月寺|大垣市":{"tel":"","funeral":"yes","tags":[],"memo":""},"蓮成寺|大垣市":{"tel":"","funeral":"yes","tags":["提携","勤行中 焼香OK","寺式場あり","合葬墓あり"],"memo":""},"勝楽寺|大垣市":{"tel":"","funeral":"yes","tags":[],"memo":"蓮成寺さんの紹介で寺葬（家族葬）施行あり"},"浄勝寺|揖斐郡大野町":{"tel":"","funeral":"yes","tags":["本尊の前 位牌・遺影NG","要注意"],"memo":"・枕経で位牌持帰らない。\n・位牌は喪主または家族にお寺へ届けさせれる。\n・祭壇の花は白（せいぜい黄、青くらい）と指定あり\n※ピンク、赤は避ける事!\n・故人には白仏衣を着せる（好みの服は足元）\n・棺には棺掛け必須"},"観音寺|揖斐郡揖斐川町":{"tel":"090-2183-5687","funeral":"unknown","tags":[],"memo":""},"等光寺|揖斐郡揖斐川町":{"tel":"090-2183-5687","funeral":"unknown","tags":["提携","勤行中 焼香OK"],"memo":""},"長然寺|安八郡輪之内町":{"tel":"","funeral":"yes","tags":[],"memo":""},"西福寺|安八郡輪之内町":{"tel":"","funeral":"yes","tags":["準提携"],"memo":"蓮成寺さんから紹介戴いた寺院"},"性顕寺|安八郡神戸町":{"tel":"","funeral":"unknown","tags":["お経長い","出棺遅れ注意","当日初七日NG還骨OK","当日初七日NG"],"memo":"・葬儀は1時間30分を見込むと良い、\n・どうしてもの場合のみ当日初七日OKの事例あり、"},"養教寺|岐阜市":{"tel":"","funeral":"unknown","tags":["準提携"],"memo":""},"円光寺|岐阜市":{"tel":"","funeral":"yes","tags":["合葬墓あり"],"memo":""},"丸山寺|岐阜市":{"tel":"","funeral":"yes","tags":[],"memo":"・帰敬式の際、導師焼香後に喪主の手で棺の窓を閉めてもらう。\n・初七日 式場でも良いが お寺でやりたがる。"},"教徳寺|岐阜市":{"tel":"","funeral":"unknown","tags":["当日初七日NG","本尊の前 位牌・遺影NG"],"memo":"・本尊の正面に遺影、位牌を置かない\n・還骨は当日自宅にてOK"},"教寿寺|岐阜市":{"tel":"","funeral":"yes","tags":["おかみそり→窓"],"memo":"・帰敬式の際 窓開けと閉じは喪主に行わせる"},"超宗寺|岐阜市":{"tel":"","funeral":"yes","tags":["2人でお勤め（葬）","散華あり（三奉請）"],"memo":"・中陰壇無しで良い\n（仏壇が無ければ中陰壇設置でもよいかと）\n・散華（台必須）"}};
+
+function syncStateToTemples() {
+  temples.forEach(t => {
+    const saved = state[t.id] || {};
+    // キーを「寺院名|市区町村」形式で検索（同名寺院の混在を防ぐ）
+    const def = DEFAULT_TEMPLE_DATA[t.name + '|' + t.city] || {};
+    t.tel = saved.tel !== undefined ? saved.tel : (def.tel || '');
+    t.funeral = saved.funeral !== undefined ? saved.funeral : (def.funeral || 'unknown');
+    t.tags = saved.tags !== undefined ? saved.tags : (def.tags || []);
+    t.memo = saved.memo !== undefined ? saved.memo : (def.memo || '');
+  });
+}
+
+// Init
+populateFilters();
+syncStateToTemples();
+filtered = [...temples];
+renderTable();
+renderCustomFilterTags();
+
+// sticky-controls の top をヘッダー高さに合わせる
+(function() {
+  function adjustStickyTop() {
+    const header = document.querySelector('header');
+    const sticky = document.querySelector('.sticky-controls');
+    if (header && sticky) {
+      const h = header.getBoundingClientRect().height;
+      sticky.style.top = h + 'px';
+    }
+  }
+  adjustStickyTop();
+  window.addEventListener('resize', adjustStickyTop);
+})();
+// ===================== 手入力追加 =====================
+let modalTags = [];
+
+function openAddModal() {
+  modalTags = [];
+  document.getElementById('newName').value = '';
+  document.getElementById('newSect').value = '';
+  document.getElementById('newCity').value = '';
+  document.getElementById('newZip').value = '';
+  document.getElementById('newAddr').value = '';
+  document.getElementById('newTel').value = '';
+  document.getElementById('newFuneral').value = 'unknown';
+  document.getElementById('newMemo').value = '';
+  document.getElementById('newTagInput').value = '';
+  renderModalTags();
+
+  // populate sect datalist
+  const dl = document.getElementById('sectList');
+  dl.innerHTML = '';
+  const sects = [...new Set(temples.map(t => t.sect))].sort();
+  sects.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s;
+    dl.appendChild(o);
+  });
+
+  // populate preset tag buttons (固定 + カスタム)
+  const basePresets = ['提携', '勤行中 焼香OK', 'お経長い', '話が長い', '要注意', '空き寺', '兼任寺'];
+  const allPresets = [...new Set([...basePresets, ...customFilterTags])];
+  const presetContainer = document.getElementById('modalPresetTags');
+  presetContainer.innerHTML = '';
+  allPresets.forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'modal-preset-btn';
+    b.textContent = p;
+    b.onclick = () => addModalTag(p);
+    presetContainer.appendChild(b);
+  });
+
+  document.getElementById('addModal').classList.add('open');
+  setTimeout(() => document.getElementById('newName').focus(), 100);
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddModal();
+});
+document.getElementById('csvExportModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// Tag input - Enter key
+document.getElementById('newTagInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = this.value.trim();
+    if (val) { addModalTag(val); this.value = ''; }
+  }
+});
+
+function addModalTag(tag) {
+  if (!modalTags.includes(tag)) {
+    modalTags.push(tag);
+    renderModalTags();
+    // プリセットにない新規タグは「タグで絞り込み」にも追加
+    const basePresets = ['提携', '勤行中 焼香OK', 'お経長い', '話が長い', '要注意', '空き寺', '兼任寺'];
+    if (!basePresets.includes(tag) && !customFilterTags.includes(tag)) {
+      customFilterTags.push(tag);
+      localStorage.setItem('customFilterTags', JSON.stringify(customFilterTags));
+      renderCustomFilterTags();
+    }
+  }
+}
+
+function removeModalTag(tag) {
+  modalTags = modalTags.filter(t => t !== tag);
+  renderModalTags();
+}
+
+function renderModalTags() {
+  const container = document.getElementById('newTagsContainer');
+  const input = document.getElementById('newTagInput');
+  container.innerHTML = '';
+  modalTags.forEach(tag => {
+    const badge = document.createElement('span');
+    badge.className = 'modal-tag-badge' + (tag === '提携' ? ' partner' : '');
+    badge.innerHTML = `${tag} <span onclick="removeModalTag('${tag}')">×</span>`;
+    container.appendChild(badge);
+  });
+  container.appendChild(input);
+}
+
+function saveNewTemple() {
+  const name = document.getElementById('newName').value.trim();
+  const sect = document.getElementById('newSect').value.trim();
+  if (!name) { alert('寺院名は必須です。'); document.getElementById('newName').focus(); return; }
+  if (!sect) { alert('宗派は必須です。'); document.getElementById('newSect').focus(); return; }
+
+  const newId = 'manual_' + Date.now();
+  const newTemple = {
+    id: newId,
+    name,
+    sect,
+    city: document.getElementById('newCity').value.trim() || '岐阜市',
+    zip: document.getElementById('newZip').value.trim(),
+    address: document.getElementById('newAddr').value.trim(),
+    tel: document.getElementById('newTel').value.trim(),
+    funeral: document.getElementById('newFuneral').value,
+    tags: [...modalTags],
+    memo: document.getElementById('newMemo').value.trim(),
+    manual: true
+  };
+
+  // Add to temples array
+  temples.push(newTemple);
+
+  // Persist manually added temples to localStorage
+  const manualKey = 'manual_temples';
+  const existing = JSON.parse(localStorage.getItem(manualKey) || '[]');
+  existing.push(newTemple);
+  localStorage.setItem(manualKey, JSON.stringify(existing));
+
+  // Also save to normal state
+  updateField(newId, 'tel', newTemple.tel);
+  saveState();
+
+  // Rebuild selects
+  populateSects();
+  populateCities();
+
+  // Show in table
+  filtered = [...temples];
+  applyFilters();
+
+  closeAddModal();
+
+  // Flash highlight the new row
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#tableBody tr');
+    const lastRow = rows[rows.length - 1];
+    if (lastRow) {
+      lastRow.style.transition = 'background 0.3s';
+      lastRow.style.background = '#e8f4e8';
+      setTimeout(() => { lastRow.style.background = ''; }, 1500);
+    }
+  }, 100);
+}
+
+// Load manually added temples from localStorage on startup
+function loadManualTemples() {
+  const stored = JSON.parse(localStorage.getItem('manual_temples') || '[]');
+  stored.forEach(t => {
+    if (!temples.find(x => x.id === t.id)) {
+      temples.push(t);
+    }
+  });
+}
+
+</script>
+<!-- 手入力追加モーダル -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <h2 style="font-family:'Noto Serif JP',serif;font-size:18px;color:var(--ink);margin:0;">🏯 新規寺院を登録</h2>
+      <button onclick="closeAddModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--stone);line-height:1;padding:0 4px;" title="閉じる">×</button>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field full">
+        <label>寺院名<span class="required">*</span></label>
+        <input type="text" id="newName" placeholder="例：〇〇寺">
+      </div>
+      <div class="modal-field">
+        <label>宗派<span class="required">*</span></label>
+        <input type="text" id="newSect" placeholder="例：浄土真宗本願寺派" list="sectList">
+        <datalist id="sectList"></datalist>
+      </div>
+      <div class="modal-field">
+        <label>市区町村</label>
+        <input type="text" id="newCity" placeholder="例：岐阜市">
+      </div>
+      <div class="modal-field">
+        <label>郵便番号</label>
+        <input type="text" id="newZip" placeholder="例：500-0000">
+      </div>
+      <div class="modal-field full">
+        <label>住所</label>
+        <input type="text" id="newAddr" placeholder="例：岐阜市〇〇町1-2-3">
+      </div>
+      <div class="modal-field">
+        <label>電話番号</label>
+        <input type="text" id="newTel" placeholder="例：058-000-0000">
+      </div>
+      <div class="modal-field">
+        <label>葬儀対応</label>
+        <select id="newFuneral">
+          <option value="unknown">未確認</option>
+          <option value="yes">✓ 対応あり</option>
+          <option value="no">✗ 対応なし</option>
+        </select>
+      </div>
+      <div class="modal-field full">
+        <label>タグ</label>
+        <div class="modal-tags-input" id="newTagsContainer" onclick="document.getElementById('newTagInput').focus()">
+          <!-- badges appear here -->
+          <input type="text" id="newTagInput" style="border:none;outline:none;font-size:12px;min-width:80px;font-family:'Noto Sans JP',sans-serif;" placeholder="タグを入力してEnter">
+        </div>
+        <div class="modal-preset-tags" id="modalPresetTags">
+        </div>
+      </div>
+      <div class="modal-field full">
+        <label>メモ</label>
+        <textarea id="newMemo" placeholder="備考・メモを入力…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveNewTemple()">💾 登録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV出力モーダル -->
+<div class="modal-overlay" id="csvExportModal">
+  <div class="modal-box" style="max-width:640px;width:95%;">
+    <h2 class="modal-title">📥 CSV出力</h2>
+    <p style="font-size:13px;color:var(--stone);margin-bottom:10px;">下のテキストを全選択してコピーし、メモ帳などに貼り付けて <strong>.csv</strong> 形式で保存してください。</p>
+    <textarea id="csvOutputArea" readonly
+      style="width:100%;height:320px;font-size:11px;font-family:monospace;padding:10px;border:1.5px solid var(--border);border-radius:8px;resize:vertical;box-sizing:border-box;"></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn-save" onclick="selectAllCSV()">📋 全選択</button>
+      <button class="btn-cancel" onclick="document.getElementById('csvExportModal').classList.remove('open')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
